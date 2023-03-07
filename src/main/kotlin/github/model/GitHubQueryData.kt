@@ -9,7 +9,11 @@ data class SearchResult(val data: SearchResultData)
 data class SearchResultData(val search: SearchResultItemConnection)
 
 @Serializable
-data class SearchResultItemConnection(val issueCount: Int, val edges: List<SearchResultItemIssue>, val pageInfo: PageInfo)
+data class SearchResultItemConnection(
+    val issueCount: Int,
+    val edges: List<SearchResultItemIssue>,
+    val pageInfo: PageInfo
+)
 
 @Serializable
 data class SearchResultItemIssue(val node: Issue)

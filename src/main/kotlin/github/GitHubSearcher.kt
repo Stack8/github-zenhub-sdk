@@ -1,10 +1,6 @@
 package github
 
-import github.model.GitHubIssueSearchQuery
-import github.model.GitHubIssue
-import github.model.PageInfo
-import github.model.SearchResult
-import github.model.SearchResultItemIssue
+import github.model.*
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.*
