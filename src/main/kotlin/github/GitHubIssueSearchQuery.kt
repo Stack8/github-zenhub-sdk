@@ -1,4 +1,4 @@
-package github.model
+package github
 
 class GitHubIssueSearchQuery(private val org: String, private val type: IssueType) {
     private var issueStatus: IssueStatus? = null
@@ -21,9 +21,9 @@ class GitHubIssueSearchQuery(private val org: String, private val type: IssueTyp
     }
 
     fun toQuery(): String {
-        var query = "org:$org is:${type.type}"
+        var query = "org:$org is:${type.value}"
         if (issueStatus != null) {
-            query += " is:${issueStatus!!.status}"
+            query += " is:${issueStatus!!.value}"
         }
         if (closedOn != null) {
             query += " closed:$closedOn"
@@ -35,10 +35,10 @@ class GitHubIssueSearchQuery(private val org: String, private val type: IssueTyp
     }
 }
 
-enum class IssueType(val type: String) {
+enum class IssueType(val value: String) {
     ISSUE("issue"), PR("pr")
 }
 
-enum class IssueStatus(val status: String) {
+enum class IssueStatus(val value: String) {
     OPEN("open"), CLOSED("closed")
 }

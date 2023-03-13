@@ -1,6 +1,5 @@
 package github
 
-import github.model.*
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.*

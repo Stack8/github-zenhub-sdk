@@ -1,9 +1,5 @@
 package github
 
-import github.model.GitHubIssueSearchQuery
-import github.model.IssueStatus
-import github.model.IssueType
-
 suspend fun main() {
     val searchGitHubIssues = searchGitHubIssues(
         GitHubIssueSearchQuery("Stack8", IssueType.ISSUE).issueStatus(IssueStatus.CLOSED)

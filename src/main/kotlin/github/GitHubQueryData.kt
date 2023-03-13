@@ -1,4 +1,4 @@
-package github.model
+package github
 
 import kotlinx.serialization.Serializable
 
