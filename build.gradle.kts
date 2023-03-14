@@ -7,6 +7,10 @@ plugins {
 group = "com.ziro.engineering"
 version = "1.0.0"
 
+sourceSets.main {
+    java.srcDirs("src/main/kotlin")
+}
+
 repositories {
     mavenCentral()
 }
