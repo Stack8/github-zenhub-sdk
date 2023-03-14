@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.backend.wasm.lower.excludeDeclarationsFromCodegen
+
 plugins {
     kotlin("jvm") version "1.8.0"
     kotlin("plugin.serialization") version "1.8.10"
+    java
     `maven-publish`
 }
 
@@ -13,6 +16,18 @@ sourceSets.main {
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            groupId = "com.ziro.engineering"
+            artifactId = "library"
+            version = "1.0.0"
+
+            from(components["java"])
+        }
+    }
 }
 
 dependencies {
