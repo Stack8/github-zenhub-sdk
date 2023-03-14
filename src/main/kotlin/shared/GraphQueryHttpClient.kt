@@ -17,7 +17,7 @@ abstract class GraphQueryHttpClient(private val url: String, private val authTok
 
     suspend fun query(query: String): HttpResponse {
         return httpClient.post(url) {
-            header("Authorization", "bearer $authToken")
+            header("Authorization", "Bearer $authToken")
             contentType(ContentType.Application.Json)
             setBody(GraphQuery(query))
         }
