@@ -1,11 +1,11 @@
 plugins {
     kotlin("jvm") version "1.8.0"
     kotlin("plugin.serialization") version "1.8.10"
-    `java-library`
+    `maven-publish`
 }
 
 group = "com.ziro.engineering"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
