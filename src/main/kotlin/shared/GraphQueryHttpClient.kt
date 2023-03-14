@@ -7,7 +7,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
-abstract class GraphQueryHttpClient(private val url: String, private val authToken: String) {
+internal abstract class GraphQueryHttpClient(private val url: String, private val authToken: String) {
     private val httpClient: HttpClient = HttpClient {
         expectSuccess = true
         install(ContentNegotiation) {

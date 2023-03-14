@@ -3,4 +3,4 @@ package shared
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GraphQuery(val query: String)
+internal data class GraphQuery(val query: String)

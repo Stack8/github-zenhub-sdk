@@ -5,10 +5,19 @@ package zenhub.issue
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.future
 import zenhub.ZenHubClient
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
-suspend fun searchZenHubIssues(startTime: Instant, endTime: Instant): List<ZenHubIssueSearchResult> {
+@OptIn(DelicateCoroutinesApi::class)
+fun query(startTime: Instant, endTime: Instant): CompletableFuture<List<ZenHubIssueSearchResult>> =
+    GlobalScope.future { searchZenHubIssues(startTime, endTime) }
+
+
+private suspend fun searchZenHubIssues(startTime: Instant, endTime: Instant): List<ZenHubIssueSearchResult> {
     var earliestClosedDate: Instant
     var cursor: String? = null
     val allResults = emptyList<ZenHubIssue>()
