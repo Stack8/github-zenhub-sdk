@@ -107,7 +107,3 @@ private fun parseQueryResults(queryResults: List<ZenHubIssue>): List<ZenHubIssue
         )
     }
 }
-
-suspend fun main() {
-    searchZenHubIssues(Instant.parse("2023-03-14T00:00:00.000Z"), Instant.parse("2023-03-14T00:00:00.000Z"))
-}
