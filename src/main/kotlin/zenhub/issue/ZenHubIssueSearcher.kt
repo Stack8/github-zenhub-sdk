@@ -40,7 +40,7 @@ private suspend fun getPage(cursor: String?): ZenHubIssueQueryResult {
     }
     return sendQuery(
         "{\n" +
-                "  searchClosedIssues(\n" +
+                "  issues: searchClosedIssues(\n" +
                 "    workspaceId: \"59c54eb49d9e774e473597f1\"\n" +
                 "    filters: { labels: {nin: [\"Invalid\", \"Duplicate\", \"Epic\"] notInAny: true}}\n" +
                 "    first: 100\n" +
