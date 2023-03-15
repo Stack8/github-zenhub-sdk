@@ -5,5 +5,6 @@ data class ZenHubIssueSearchResult(
     val title: String,
     val pullRequest: Boolean,
     val author: String,
-    val assignees: List<String>
+    val assignees: List<String>,
+    val labels: List<String>
 )

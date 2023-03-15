@@ -42,7 +42,7 @@ private suspend fun getPage(cursor: String?): ZenHubIssueQueryResult {
         "{\n" +
                 "  issues: searchClosedIssues(\n" +
                 "    workspaceId: \"59c54eb49d9e774e473597f1\"\n" +
-                "    filters: { labels: {nin: [\"Invalid\", \"Duplicate\", \"Epic\"] notInAny: true}}\n" +
+                "    filters: { }\n" +
                 "    first: 100\n" +
                 startCursor +
                 "  ) {\n" +
@@ -55,6 +55,11 @@ private suspend fun getPage(cursor: String?): ZenHubIssueQueryResult {
                 "      assignees {\n" +
                 "        nodes {\n" +
                 "          login\n" +
+                "        }\n" +
+                "      }\n" +
+                "      labels {\n" +
+                "        nodes {\n" +
+                "          name\n" +
                 "        }\n" +
                 "      }\n" +
                 "      closedAt\n" +
@@ -101,7 +106,13 @@ private fun parseQueryResults(queryResults: List<ZenHubIssue>): List<ZenHubIssue
             item.title,
             item.pullRequest,
             item.user.login,
-            item.assignees.nodes.map { user -> user.login }
+            item.assignees.nodes.map { user -> user.login },
+            item.labels.nodes.map { label -> label.name }
         )
     }
+}
+
+suspend fun main() {
+    val searchZenHubIssues = searchZenHubIssues(Instant.parse("2023-03-01T00:00:00.000Z"), Instant.now())
+    println(searchZenHubIssues.toString())
 }

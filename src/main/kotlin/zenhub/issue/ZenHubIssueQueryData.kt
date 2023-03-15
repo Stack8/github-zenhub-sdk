@@ -18,7 +18,8 @@ internal data class ZenHubIssue(
     val pullRequest: Boolean,
     val closedAt: String,
     val user: ZenHubIssueUser,
-    val assignees: ZenHubIssueAssignees
+    val assignees: ZenHubIssueAssignees,
+    val labels: ZenHubIssueLabels
 )
 
 @Serializable
@@ -26,6 +27,12 @@ internal data class ZenHubIssueUser(val login: String)
 
 @Serializable
 internal data class ZenHubIssueAssignees(val nodes: List<ZenHubIssueUser>)
+
+@Serializable
+internal data class ZenHubIssueLabels(val nodes: List<ZenHubIssueLabel>)
+
+@Serializable
+internal data class ZenHubIssueLabel(val name: String)
 
 @Serializable
 internal data class ZenHubPageInfo(val endCursor: String)
