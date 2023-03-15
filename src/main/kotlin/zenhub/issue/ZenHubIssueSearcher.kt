@@ -20,11 +20,11 @@ fun query(startTime: Instant, endTime: Instant): CompletableFuture<List<ZenHubIs
 private suspend fun searchZenHubIssues(startTime: Instant, endTime: Instant): List<ZenHubIssueSearchResult> {
     var earliestClosedDate: Instant
     var cursor: String? = null
-    val allResults = emptyList<ZenHubIssue>()
+    var allResults = emptyList<ZenHubIssue>()
 
     do {
         val page = getPage(cursor)
-        allResults.plus(page.data.issues.nodes)
+        allResults = allResults.plus(page.data.issues.nodes)
         earliestClosedDate = Instant.parse(page.data.issues.nodes.last().closedAt)
         cursor = page.data.issues.pageInfo.endCursor
     } while (earliestClosedDate.isAfter(startTime))
@@ -47,11 +47,6 @@ private suspend fun getPage(cursor: String?): ZenHubIssueQueryResult {
                 startCursor +
                 "  ) {\n" +
                 "    nodes {\n" +
-                "      labels {\n" +
-                "        nodes{\n" +
-                "          name\n" +
-                "        }\n" +
-                "      }\n" +
                 "      number\n" +
                 "      title\n" +
                 "      user {\n" +
@@ -85,6 +80,9 @@ private suspend fun sendQuery(query: String): ZenHubIssueQueryResult {
 
 private fun trimResults(results: List<ZenHubIssue>, startDate: Instant, endDate: Instant): List<ZenHubIssue> {
     // The results are returned in reverse chronological order.
+    if (results.isEmpty()) {
+        return results;
+    }
 
     val indexOfEarliestIssue = results.indexOfFirst { issue -> Instant.parse(issue.closedAt).isBefore(startDate) }
 
