@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.ziro.engineering"
-version = "1.0.1"
+version = "1.1.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -39,6 +39,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 
     testImplementation(kotlin("test"))
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 tasks.test {
