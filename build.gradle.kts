@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.10"
     java
     `maven-publish`
+    id("com.apollographql.apollo3") version "3.8.2"
 }
 
 group = "com.ziro.engineering"
@@ -29,20 +30,20 @@ publishing {
 }
 
 dependencies {
-    val ktorVersion = "2.3.5"
-
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-java:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
+    implementation("com.apollographql.apollo3:apollo-api:3.8.2")
 
     testImplementation(kotlin("test"))
 }
 
 kotlin {
     jvmToolchain(17)
+}
+
+apollo {
+    service("zenhub") {
+        packageName.set("com.ziro.engineering.zenhub.graphql.sdk")
+    }
 }
 
 tasks.test {
