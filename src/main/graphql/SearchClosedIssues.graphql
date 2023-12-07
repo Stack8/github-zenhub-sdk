@@ -1,0 +1,35 @@
+query SearchClosedIssues(
+    $workspaceId: ID!
+    $first: Int!
+    $after: String
+) {
+    searchClosedIssues(
+        workspaceId: $workspaceId
+        filters: {}
+        first: $first
+        after: $after
+    ) {
+        nodes {
+            number
+            title
+            user {
+                login
+            }
+            assignees {
+                nodes {
+                    login
+                }
+            }
+            labels {
+                nodes {
+                    name
+                }
+            }
+            closedAt
+            pullRequest
+        }
+        pageInfo {
+            endCursor
+        }
+    }
+}

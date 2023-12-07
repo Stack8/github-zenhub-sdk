@@ -1,0 +1,10 @@
+query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!) {
+    issueByInfo(
+        repositoryGhId: $repositoryGhId
+        repositoryId: $repositoryId
+        issueNumber: $issueNumber
+    ) {
+        id
+        body
+    }
+}
