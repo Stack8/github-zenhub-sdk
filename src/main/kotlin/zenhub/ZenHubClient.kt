@@ -35,7 +35,7 @@ class ZenHubClient : AutoCloseable {
             nodes?.forEach { results = results.plus(it) }
         } while (earliestClosedDate.isAfter(startTime))
 
-        return results
+        return trimResults(results, startTime, endTime)
     }
 
     fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
@@ -43,13 +43,29 @@ class ZenHubClient : AutoCloseable {
         apolloClient.query(query).toFlow().single().data?.issueByInfo
     }
 
+    override fun close() {
+        apolloClient.closeQuietly()
+    }
+
     private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
         val query = SearchClosedIssuesQuery(Constants.ZENHUB_WORKSPACE_ID, 100, Optional.presentIfNotNull(after))
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 
-    override fun close() {
-        apolloClient.closeQuietly()
+    private fun trimResults(results: List<SearchClosedIssuesQuery.Node>, startDate: Instant, endDate: Instant): List<SearchClosedIssuesQuery.Node> {
+        // The results are returned in reverse chronological order.
+        if (results.isEmpty()) {
+            return results
+        }
+
+        val indexOfEarliestIssue = results.indexOfFirst { issue -> Instant.parse(issue.closedAt.toString()).isBefore(startDate) }
+
+        var indexOfLatestIssue = -1
+        if (Instant.parse(results[0].closedAt.toString()).isAfter(endDate)) {
+            indexOfLatestIssue = results.indexOfLast { issue -> Instant.parse(issue.closedAt.toString()).isAfter(endDate) }
+        }
+
+        return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
     }
 
 }
