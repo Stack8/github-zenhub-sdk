@@ -1,14 +1,13 @@
-import org.jetbrains.kotlin.backend.wasm.lower.excludeDeclarationsFromCodegen
-
 plugins {
-    kotlin("jvm") version "1.8.0"
-    kotlin("plugin.serialization") version "1.8.10"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.serialization") version "1.9.10"
     java
     `maven-publish`
+    id("com.apollographql.apollo3") version "3.8.2"
 }
 
 group = "com.ziro.engineering"
-version = "1.0.1"
+version = "1.1.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -31,22 +30,23 @@ publishing {
 }
 
 dependencies {
-    val ktorVersion = "2.2.3"
-
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-java:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
+    implementation("com.apollographql.apollo3:apollo-api:3.8.2")
 
     testImplementation(kotlin("test"))
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+apollo {
+    service("zenhub") {
+        packageName.set("com.ziro.engineering.zenhub.graphql.sdk")
+    }
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-kotlin {
-    jvmToolchain(8)
-}
