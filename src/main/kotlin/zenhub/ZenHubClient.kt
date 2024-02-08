@@ -9,15 +9,27 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
 import java.time.Instant
 
+/**
+ * Default GitHub Repository ID - references the SMACS repository.
+ */
+private const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
+private const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
+
+/**
+ * Default Workspace ID - references the "Engineering Team" workspace.
+ */
+private const val DEFAULT_WORKSPACE_ID = "59c54eb49d9e774e473597f1"
+private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
+
 class ZenHubClient(
-    private val githubRepositoryId: Int,
-    private val gitRepositoryId: String,
-    private val zenhubWorkspaceId: String
+    private val githubRepositoryId: Int = DEFAULT_GITHUB_REPOSITORY_ID,
+    private val gitRepositoryId: String = DEFAULT_GIT_REPOSITORY_ID,
+    private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID
 ) : AutoCloseable {
 
     private val apolloClient: ApolloClient = ApolloClient
         .Builder()
-        .serverUrl("https://api.zenhub.com/public/graphql")
+        .serverUrl(ZENHUB_GRAPHQL_URL)
         .addHttpHeader(
             "Authorization",
             "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}"
