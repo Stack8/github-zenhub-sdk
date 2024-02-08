@@ -1,4 +1,4 @@
-query GetRepository($repoName: String!, $repoOwner: String!) {
+query Repository($repoName: String!, $repoOwner: String!) {
     repository(name: $repoName, owner: $repoOwner) {
         id
         databaseId
