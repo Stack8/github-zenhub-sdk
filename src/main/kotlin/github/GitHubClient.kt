@@ -12,11 +12,6 @@ class GitHubClient : AutoCloseable {
         .addHttpHeader("Authorization", "Bearer ${System.getenv("GITHUB_API_TOKEN")}")
         .build()
 
-    object Constants {
-        const val GITHUB_REPOSITORY_ID: Int = 15617306
-        const val GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
-    }
-
     fun getRepository(repoName: String, repoOwner: String): GetRepositoryQuery.Repository? = runBlocking {
         val query = GetRepositoryQuery(repoName, repoOwner)
         apolloClient.query(query).toFlow().single().data?.repository
