@@ -1,0 +1,18 @@
+query GetRepository($repoName: String!, $repoOwner: String!) {
+    repository(name: $repoName, owner: $repoOwner) {
+        id
+        databaseId
+        owner {
+            login
+        }
+        name
+        description
+        milestones(first: 10, states: [OPEN]) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+}
