@@ -1,0 +1,15 @@
+query CurrentlyActiveSprint($workspaceId: ID!) {
+    workspace(id: $workspaceId) {
+        id
+        displayName
+        sprints(first: 1, filters: { state: { eq: OPEN } }) {
+            nodes {
+                id
+                name
+                startAt
+                endAt
+                state
+            }
+        }
+    }
+}

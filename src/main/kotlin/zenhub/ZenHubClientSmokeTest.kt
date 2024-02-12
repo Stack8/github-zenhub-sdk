@@ -22,6 +22,9 @@ fun main() {
                 println(node)
             }
         }
+
+        val currentlyActiveSprint = client.getCurrentlyActiveSprint()
+        println(currentlyActiveSprint)
     }
 }
 

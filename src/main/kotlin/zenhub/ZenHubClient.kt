@@ -2,8 +2,11 @@ package zenhub
 
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.ziro.engineering.zenhub.graphql.sdk.CurrentlyActiveSprintQuery
 import com.ziro.engineering.zenhub.graphql.sdk.IssueByInfoQuery
 import com.ziro.engineering.zenhub.graphql.sdk.SearchClosedIssuesQuery
+import com.ziro.engineering.zenhub.graphql.sdk.type.Sprint
+import com.ziro.engineering.zenhub.graphql.sdk.type.Workspace
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -52,6 +55,11 @@ class ZenHubClient(
         } while (earliestClosedDate.isAfter(startTime))
 
         return trimResults(results, startTime, endTime)
+    }
+
+    fun getCurrentlyActiveSprint() : CurrentlyActiveSprintQuery.Node? = runBlocking {
+        val query = CurrentlyActiveSprintQuery(zenhubWorkspaceId)
+        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes?.get(0)
     }
 
     fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
