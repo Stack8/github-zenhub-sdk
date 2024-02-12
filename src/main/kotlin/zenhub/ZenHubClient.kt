@@ -40,17 +40,15 @@ class ZenHubClient(
         startTime: Instant,
         endTime: Instant
     ): List<SearchClosedIssuesQuery.Node> {
-        var results = emptyList<SearchClosedIssuesQuery.Node>()
+        val results = ArrayList<SearchClosedIssuesQuery.Node>()
         var earliestClosedDate: Instant
         var cursor: String? = null
 
         do {
             val page = searchClosedIssues(cursor)
-            results.plus(page?.nodes)
-            earliestClosedDate = Instant.parse(page?.nodes?.last()?.closedAt.toString())
+            page?.nodes?.let { results.addAll(it) }
+            earliestClosedDate = Instant.parse(results.last().closedAt.toString())
             cursor = page?.pageInfo?.endCursor
-            val nodes: List<SearchClosedIssuesQuery.Node>? = page?.nodes
-            nodes?.forEach { results = results.plus(it) }
         } while (earliestClosedDate.isAfter(startTime))
 
         return trimResults(results, startTime, endTime)
@@ -68,7 +66,11 @@ class ZenHubClient(
     private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? =
         runBlocking {
             val query =
-                SearchClosedIssuesQuery(zenhubWorkspaceId, 100, Optional.presentIfNotNull(after))
+                SearchClosedIssuesQuery(
+                    zenhubWorkspaceId,
+                    Optional.present(100),
+                    Optional.presentIfNotNull(after)
+                )
             apolloClient.query(query).toFlow().single().data?.searchClosedIssues
         }
 
