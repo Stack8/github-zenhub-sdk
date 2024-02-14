@@ -1,0 +1,12 @@
+mutation AddIssuesToSprints($input: AddIssuesToSprintsInput!) {
+    addIssuesToSprints(input: $input) {
+        clientMutationId
+        sprintIssues {
+            id
+            issue {
+                id
+                number
+            }
+        }
+    }
+}

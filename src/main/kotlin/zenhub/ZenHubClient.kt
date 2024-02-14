@@ -2,11 +2,11 @@ package zenhub
 
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.ziro.engineering.zenhub.graphql.sdk.AddIssuesToSprintsMutation
 import com.ziro.engineering.zenhub.graphql.sdk.CurrentlyActiveSprintQuery
 import com.ziro.engineering.zenhub.graphql.sdk.IssueByInfoQuery
 import com.ziro.engineering.zenhub.graphql.sdk.SearchClosedIssuesQuery
-import com.ziro.engineering.zenhub.graphql.sdk.type.Sprint
-import com.ziro.engineering.zenhub.graphql.sdk.type.Workspace
+import com.ziro.engineering.zenhub.graphql.sdk.type.AddIssuesToSprintsInput
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -65,6 +65,12 @@ class ZenHubClient(
     fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
         val query = IssueByInfoQuery(githubRepositoryId, gitRepositoryId, issueNumber)
         apolloClient.query(query).toFlow().single().data?.issueByInfo
+    }
+
+    fun addIssuesToSprints(issueIds: List<String>, sprintIds: List<String>): AddIssuesToSprintsMutation.AddIssuesToSprints? = runBlocking {
+        val input = AddIssuesToSprintsInput(Optional.absent(), issueIds, sprintIds)
+        val mutation = AddIssuesToSprintsMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
     }
 
     override fun close() {
