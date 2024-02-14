@@ -18,6 +18,7 @@ query SearchClosedIssues(
         }
         totalCount
         nodes {
+            id
             htmlUrl
             number
             title
