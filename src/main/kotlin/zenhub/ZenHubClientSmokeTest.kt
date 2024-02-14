@@ -17,11 +17,7 @@ fun main() {
         )
         println("Results Size: ${response.size}")
 
-        response.forEach { node ->
-            if (node.pullRequest) {
-                println(node)
-            }
-        }
+        response.forEach { node -> println(node) }
 
         val currentlyActiveSprint = client.getCurrentlyActiveSprint()
         println(currentlyActiveSprint)
