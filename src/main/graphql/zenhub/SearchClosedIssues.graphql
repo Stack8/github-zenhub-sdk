@@ -34,7 +34,11 @@ query SearchClosedIssues(
             }
             sprints {
                 nodes {
+                    id
                     name
+                    startAt
+                    endAt
+                    state
                 }
             }
             closedAt
