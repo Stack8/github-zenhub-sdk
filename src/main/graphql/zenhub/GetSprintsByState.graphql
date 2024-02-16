@@ -1,8 +1,8 @@
 query GetSprintsByState(
     $workspaceId: ID!
-    $sprintFilters: SprintFiltersInput
-    $firstSprints: Int = 100
-    $orderSprintsBy: SprintOrderInput
+    $sprintFilters: SprintFiltersInput!
+    $firstSprints: Int!
+    $orderSprintsBy: SprintOrderInput!
 ) {
     workspace(id: $workspaceId) {
         id

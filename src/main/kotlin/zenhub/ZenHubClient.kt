@@ -3,10 +3,10 @@ package zenhub
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.zenhub.graphql.sdk.AddIssuesToSprintsMutation
-import com.ziro.engineering.zenhub.graphql.sdk.CurrentlyActiveSprintQuery
+import com.ziro.engineering.zenhub.graphql.sdk.GetSprintsByStateQuery
 import com.ziro.engineering.zenhub.graphql.sdk.IssueByInfoQuery
 import com.ziro.engineering.zenhub.graphql.sdk.SearchClosedIssuesQuery
-import com.ziro.engineering.zenhub.graphql.sdk.type.AddIssuesToSprintsInput
+import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -30,19 +30,10 @@ class ZenHubClient(
     private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID
 ) : AutoCloseable {
 
-    private val apolloClient: ApolloClient = ApolloClient
-        .Builder()
-        .serverUrl(ZENHUB_GRAPHQL_URL)
-        .addHttpHeader(
-            "Authorization",
-            "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}"
-        )
-        .build()
+    private val apolloClient: ApolloClient = ApolloClient.Builder().serverUrl(ZENHUB_GRAPHQL_URL)
+        .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}").build()
 
-    fun searchClosedIssuesBetween(
-        startTime: Instant,
-        endTime: Instant
-    ): List<SearchClosedIssuesQuery.Node> {
+    fun searchClosedIssuesBetween(startTime: Instant, endTime: Instant): List<SearchClosedIssuesQuery.Node> {
         val results = ArrayList<SearchClosedIssuesQuery.Node>()
         var earliestClosedDate: Instant
         var cursor: String? = null
@@ -57,9 +48,43 @@ class ZenHubClient(
         return trimResults(results, startTime, endTime)
     }
 
-    fun getCurrentlyActiveSprint() : CurrentlyActiveSprintQuery.Node? = runBlocking {
-        val query = CurrentlyActiveSprintQuery(zenhubWorkspaceId)
-        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes?.get(0)
+    fun getCurrentlyActiveSprint(): Optional<GetSprintsByStateQuery.Node> {
+        return getCurrentSprint()
+    }
+
+    fun getCurrentSprint(): Optional<GetSprintsByStateQuery.Node> = runBlocking {
+        val results = getSprintByState(
+            SprintFiltersInput(Optional.present(SprintStateInput(SprintState.OPEN)), Optional.absent()),
+            1,
+            SprintOrderInput(Optional.present(OrderDirection.ASC), Optional.present(SprintOrderField.END_AT))
+        )
+        if (results.isNullOrEmpty()) {
+            Optional.absent()
+        } else {
+            Optional.present(results[0])
+        }
+    }
+
+    fun getPreviousSprint(): Optional<GetSprintsByStateQuery.Node> = runBlocking {
+        val results = getSprintByState(
+            SprintFiltersInput(Optional.present(SprintStateInput(SprintState.CLOSED)), Optional.absent()),
+            1,
+            SprintOrderInput(Optional.present(OrderDirection.DESC), Optional.present(SprintOrderField.END_AT))
+        )
+        if (results.isNullOrEmpty()) {
+            Optional.absent()
+        } else {
+            Optional.present(results[0])
+        }
+    }
+
+    private fun getSprintByState(
+        sprintFilters: SprintFiltersInput,
+        firstSprints: Int,
+        orderSprintsBy: SprintOrderInput
+    ): List<GetSprintsByStateQuery.Node>? = runBlocking {
+        val query = GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
+        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
     }
 
     fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
@@ -67,7 +92,10 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.issueByInfo
     }
 
-    fun addIssuesToSprints(issueIds: List<String>, sprintIds: List<String>): AddIssuesToSprintsMutation.AddIssuesToSprints? = runBlocking {
+    fun addIssuesToSprints(
+        issueIds: List<String>,
+        sprintIds: List<String>
+    ): AddIssuesToSprintsMutation.AddIssuesToSprints? = runBlocking {
         val input = AddIssuesToSprintsInput(Optional.absent(), issueIds, sprintIds)
         val mutation = AddIssuesToSprintsMutation(input)
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
@@ -77,16 +105,10 @@ class ZenHubClient(
         apolloClient.closeQuietly()
     }
 
-    private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? =
-        runBlocking {
-            val query =
-                SearchClosedIssuesQuery(
-                    zenhubWorkspaceId,
-                    Optional.present(100),
-                    Optional.presentIfNotNull(after)
-                )
-            apolloClient.query(query).toFlow().single().data?.searchClosedIssues
-        }
+    private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
+        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after))
+        apolloClient.query(query).toFlow().single().data?.searchClosedIssues
+    }
 
     private fun trimResults(
         results: List<SearchClosedIssuesQuery.Node>,

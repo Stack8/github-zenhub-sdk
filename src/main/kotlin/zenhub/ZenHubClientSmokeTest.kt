@@ -21,6 +21,8 @@ fun main() {
 
         val currentlyActiveSprint = client.getCurrentlyActiveSprint()
         println(currentlyActiveSprint)
+
+        println(client.getPreviousSprint().getOrNull())
     }
 }
 
