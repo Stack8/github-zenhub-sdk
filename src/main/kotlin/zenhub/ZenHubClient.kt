@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
 import java.time.Instant
+import kotlin.collections.ArrayList
 
 /**
  * Default GitHub Repository ID - references the SMACS repository.
@@ -48,33 +49,33 @@ class ZenHubClient(
         return trimResults(results, startTime, endTime)
     }
 
-    fun getCurrentlyActiveSprint(): Optional<GetSprintsByStateQuery.Node> {
+    fun getCurrentlyActiveSprint(): GetSprintsByStateQuery.Node? {
         return getCurrentSprint()
     }
 
-    fun getCurrentSprint(): Optional<GetSprintsByStateQuery.Node> = runBlocking {
+    fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
         val results = getSprintByState(
             SprintFiltersInput(Optional.present(SprintStateInput(SprintState.OPEN)), Optional.absent()),
             1,
             SprintOrderInput(Optional.present(OrderDirection.ASC), Optional.present(SprintOrderField.END_AT))
         )
         if (results.isNullOrEmpty()) {
-            Optional.absent()
+            null
         } else {
-            Optional.present(results[0])
+            results[0]
         }
     }
 
-    fun getPreviousSprint(): Optional<GetSprintsByStateQuery.Node> = runBlocking {
+    fun getPreviousSprint(): GetSprintsByStateQuery.Node? = runBlocking {
         val results = getSprintByState(
             SprintFiltersInput(Optional.present(SprintStateInput(SprintState.CLOSED)), Optional.absent()),
             1,
             SprintOrderInput(Optional.present(OrderDirection.DESC), Optional.present(SprintOrderField.END_AT))
         )
         if (results.isNullOrEmpty()) {
-            Optional.absent()
+            null
         } else {
-            Optional.present(results[0])
+            results[0]
         }
     }
 
