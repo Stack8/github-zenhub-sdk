@@ -1,5 +1,6 @@
 package zenhub
 
+import java.time.Duration
 import java.time.Instant
 
 fun main() {
@@ -9,8 +10,19 @@ fun main() {
             println("id: ${issue.id}")
             println("body: ${issue.body}")
         }
-        val response = client.searchClosedIssuesBetween(Instant.parse("2023-12-01T00:00:00.000Z"), Instant.now())
+        val fourteenDays = Duration.ofDays(28)
+        val response = client.searchClosedIssuesBetween(
+            Instant.now().minus(fourteenDays),
+            Instant.now()
+        )
         println("Results Size: ${response.size}")
+
+        response.forEach { node -> println(node) }
+
+        val currentSprint = client.getCurrentSprint()
+        println(currentSprint)
+
+        println(client.getPreviousSprint())
     }
 }
 

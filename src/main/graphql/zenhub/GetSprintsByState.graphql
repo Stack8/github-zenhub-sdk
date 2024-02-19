@@ -1,0 +1,20 @@
+query GetSprintsByState(
+    $workspaceId: ID!
+    $sprintFilters: SprintFiltersInput!
+    $firstSprints: Int!
+    $orderSprintsBy: SprintOrderInput!
+) {
+    workspace(id: $workspaceId) {
+        id
+        displayName
+        sprints(first: $firstSprints, filters: $sprintFilters, orderBy: $orderSprintsBy) {
+            nodes {
+                id
+                name
+                startAt
+                endAt
+                state
+            }
+        }
+    }
+}
