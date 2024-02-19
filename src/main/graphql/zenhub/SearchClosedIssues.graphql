@@ -22,6 +22,14 @@ query SearchClosedIssues(
             htmlUrl
             number
             title
+            user {
+                login
+            }
+            assignees {
+                nodes {
+                    login
+                }
+            }
             pullRequest
             labels(first: 100) {
                 totalCount
