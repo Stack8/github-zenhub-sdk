@@ -19,8 +19,8 @@ fun main() {
 
         response.forEach { node -> println(node) }
 
-        val currentlyActiveSprint = client.getCurrentlyActiveSprint()
-        println(currentlyActiveSprint)
+        val currentSprint = client.getCurrentSprint()
+        println(currentSprint)
 
         println(client.getPreviousSprint())
     }

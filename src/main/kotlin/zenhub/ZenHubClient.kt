@@ -2,16 +2,12 @@ package zenhub
 
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
-import com.ziro.engineering.zenhub.graphql.sdk.AddIssuesToSprintsMutation
-import com.ziro.engineering.zenhub.graphql.sdk.GetSprintsByStateQuery
-import com.ziro.engineering.zenhub.graphql.sdk.IssueByInfoQuery
-import com.ziro.engineering.zenhub.graphql.sdk.SearchClosedIssuesQuery
+import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
 import java.time.Instant
-import kotlin.collections.ArrayList
 
 /**
  * Default GitHub Repository ID - references the SMACS repository.
@@ -47,10 +43,6 @@ class ZenHubClient(
         } while (earliestClosedDate.isAfter(startTime))
 
         return trimResults(results, startTime, endTime)
-    }
-
-    fun getCurrentlyActiveSprint(): GetSprintsByStateQuery.Node? {
-        return getCurrentSprint()
     }
 
     fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
