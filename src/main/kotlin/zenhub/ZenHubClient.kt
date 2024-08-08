@@ -71,6 +71,11 @@ class ZenHubClient(
         }
     }
 
+    fun getIssuesByPipeline(pipeline: Pipeline): List<SearchIssuesByPipelineQuery.Node>? = runBlocking {
+        val query = SearchIssuesByPipelineQuery(pipeline.id)
+        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes
+    }
+
     private fun getSprintByState(
         sprintFilters: SprintFiltersInput,
         firstSprints: Int,

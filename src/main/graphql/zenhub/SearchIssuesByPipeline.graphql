@@ -1,0 +1,24 @@
+query SearchIssuesByPipeline($pipelineId: ID!) {
+  searchIssuesByPipeline(pipelineId: $pipelineId, filters: {}) {
+    nodes {
+      id
+      number
+      title
+      connectedPrs {
+        nodes {
+          state
+          pullRequestObject {
+            state
+          }
+        }
+        totalCount
+      }
+      releases {
+        nodes {
+          title
+        }
+        totalCount
+      }
+    }
+  }
+}
