@@ -90,6 +90,11 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes
     }
 
+    fun getActiveReleases(): List<String>? = runBlocking {
+        val query = GetActiveReleasesQuery(DEFAULT_WORKSPACE_ID)
+        apolloClient.query(query).toFlow().single().data?.workspace?.releases?.nodes?.map { it.title }
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
