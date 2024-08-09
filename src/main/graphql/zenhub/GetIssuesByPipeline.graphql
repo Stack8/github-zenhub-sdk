@@ -6,7 +6,6 @@ query GetIssuesByPipeline($pipelineId: ID!) {
         nodes {
           title
         }
-        totalCount
       }
       connectedPrs {
         nodes {
@@ -16,7 +15,6 @@ query GetIssuesByPipeline($pipelineId: ID!) {
             state
           }
         }
-        totalCount
       }
       labels {
         nodes {
