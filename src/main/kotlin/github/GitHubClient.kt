@@ -1,6 +1,7 @@
 package github
 
 import com.apollographql.apollo3.ApolloClient
+import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
@@ -23,6 +24,17 @@ class GitHubClient : AutoCloseable {
     ): RepositoryQuery.Repository? = runBlocking {
         val query = RepositoryQuery(repoName, repoOwner)
         apolloClient.query(query).toFlow().single().data?.repository
+    }
+
+    fun getRecentCommits(
+        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
+        branch: String,
+    ): List<String> = runBlocking {
+        val query = GetBranchLogHistoryQuery(repoOwner, repoName, branch)
+        apolloClient.query(query).toFlow().single().data?.repository?.ref?.target?.onCommit?.history?.edges?.mapNotNull {
+            it?.node?.message
+        } ?: emptyList()
     }
 
     override fun close() {
