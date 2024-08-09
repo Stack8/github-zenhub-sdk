@@ -26,6 +26,9 @@ class GitHubClient : AutoCloseable {
         apolloClient.query(query).toFlow().single().data?.repository
     }
 
+    /**
+     * Note: this only returns the first 100 commits, not the full commit history.
+     */
     fun getRecentCommits(
         repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
         repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
