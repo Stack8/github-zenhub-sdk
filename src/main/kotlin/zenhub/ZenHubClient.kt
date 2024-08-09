@@ -85,9 +85,9 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
     }
 
-    fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node>? = runBlocking {
+    fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val query = GetIssuesByPipelineQuery(pipeline.id)
-        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes
+        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
     }
 
     fun getActiveReleases(): List<String>? = runBlocking {

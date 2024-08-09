@@ -1,6 +1,7 @@
 package zenhub
 
 import org.junit.jupiter.api.Test
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ZenHubClientTest {
@@ -10,10 +11,10 @@ class ZenHubClientTest {
     fun whenGetIssuesByPipelineThenAtLeastZeroIssues() {
         val result = zenHubClient.getIssuesByPipeline(Pipeline.MERGE_READY)
 
-        if (!result.isNullOrEmpty()) {
+        if (result.isNotEmpty()) {
             assertTrue(result[0].number > 0)
         } else {
-            assertTrue(result.isNullOrEmpty())
+            assertNotNull(result)
         }
     }
 
