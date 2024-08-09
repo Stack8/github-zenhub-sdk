@@ -26,11 +26,6 @@ class GitHubClient : AutoCloseable {
         apolloClient.query(query).toFlow().single().data?.repository
     }
 
-    fun helloWorld() {
-        // TODO: DELETE THIS WHEN DONE
-        println("Hello World")
-    }
-
     /**
      * Note: this only returns the first 100 commits, not the full commit history.
      */
