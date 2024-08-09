@@ -137,7 +137,7 @@ class ZenHubClient(
         return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
     }
 
-    fun helloWorld() {
+    fun helloWorldV2() {
         // TODO: DELETE THIS WHEN DONE
         println("Hello World")
     }
