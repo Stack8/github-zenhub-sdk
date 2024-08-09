@@ -1,45 +1,27 @@
 query GetIssuesByPipeline($pipelineId: ID!) {
   searchIssuesByPipeline(pipelineId: $pipelineId, filters: {}) {
     nodes {
-      id
-      htmlUrl
       number
-      title
-      pullRequest
-      labels {
-          nodes {
-              name
-          }
+      releases {
+        nodes {
+          title
+        }
+        totalCount
       }
-      estimate {
-          createdAt
-          updatedAt
-          value
-      }
-      sprints {
-          totalCount
-          nodes {
-              id
-              name
-              startAt
-              endAt
-          }
-      }
-      closedAt
       connectedPrs {
         nodes {
           state
+          number
           pullRequestObject {
             state
           }
         }
         totalCount
       }
-      releases {
+      labels {
         nodes {
-          title
+          name
         }
-        totalCount
       }
     }
   }
