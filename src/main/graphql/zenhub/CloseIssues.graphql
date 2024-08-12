@@ -1,0 +1,5 @@
+mutation closeIssues($issueIds: [ID!]!) {
+  closeIssues(input: {issueIds: $issueIds}) {
+    successCount
+  }
+}
