@@ -2,6 +2,7 @@ package github
 
 import com.apollographql.apollo3.ApolloClient
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
+import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
@@ -26,12 +27,22 @@ class GitHubClient : AutoCloseable {
         apolloClient.query(query).toFlow().single().data?.repository
     }
 
+    fun getFileFromBranch(
+        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        branch: String,
+        filePath: String,
+    ): String? = runBlocking {
+        val query = GetFileFromBranchQuery(repoOwner, repoName, "$branch:$filePath")
+        apolloClient.query(query).toFlow().single().data?.repository?.`object`?.onBlob?.text
+    }
+
     /**
      * Note: this only returns the first 100 commits, not the full commit history.
      */
     fun getRecentCommits(
-        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
         repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
         branch: String,
     ): List<String> = runBlocking {
         val query = GetBranchLogHistoryQuery(repoOwner, repoName, branch)

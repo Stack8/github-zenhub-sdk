@@ -1,9 +1,0 @@
-query GetActiveReleases($workspaceId: ID!) {
-  workspace(id: $workspaceId) {
-    releases(state: {eq: OPEN}) {
-      nodes {
-        title
-      }
-    }
-  }
-}

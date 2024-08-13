@@ -17,9 +17,4 @@ class ZenHubClientTest {
             assertNotNull(result)
         }
     }
-
-    @Test
-    fun whenGetActiveReleasesThenAtLeastOneRelease() {
-        zenHubClient.getActiveReleases()?.let { assertTrue(it.isNotEmpty()) }
-    }
 }
