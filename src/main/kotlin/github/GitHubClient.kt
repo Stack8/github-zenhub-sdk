@@ -38,7 +38,7 @@ class GitHubClient : AutoCloseable {
     }
 
     /**
-     * Note: this only returns the first 100 commits, not the full commit history.
+     * Note: this only returns the latest 100 commits, not the full commit history.
      */
     fun getRecentCommits(
         repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
