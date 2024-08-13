@@ -1,6 +1,7 @@
 query GetIssuesByPipeline($pipelineId: ID!) {
   searchIssuesByPipeline(pipelineId: $pipelineId, filters: {}) {
     nodes {
+      id
       number
       releases {
         nodes {
