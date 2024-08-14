@@ -7,6 +7,12 @@ class GitHubClientTest {
     private val gitHubClient = GitHubClient()
 
     @Test
+    fun whenGetFileFromBranchThenFileIsNotEmpty() {
+        val result = gitHubClient.getFileFromBranch(branch = "develop", filePath = "version.txt")
+        assert(!result.isNullOrEmpty())
+    }
+
+    @Test
     fun whenGetRecentCommitsThenThereAre100Commits() {
         val result = gitHubClient.getRecentCommits(branch = "develop")
         assertEquals(100, result.size)

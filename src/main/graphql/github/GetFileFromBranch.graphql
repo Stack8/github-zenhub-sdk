@@ -1,0 +1,9 @@
+query GetFileFromBranch($owner: String!, $repo: String!, $path: String!) {
+  repository(owner: $owner, name: $repo) {
+    object(expression: $path) {
+      ... on Blob {
+        text
+      }
+    }
+  }
+}
