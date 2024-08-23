@@ -1,0 +1,17 @@
+query GetBranchLogHistory($owner: String!, $name: String!, $branch: String!) {
+  repository(owner: $owner, name: $name) {
+    ref(qualifiedName: $branch) {
+      target {
+        ... on Commit {
+          history {
+            edges {
+              node {
+                message
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

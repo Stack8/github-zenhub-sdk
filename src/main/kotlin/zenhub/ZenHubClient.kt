@@ -71,15 +71,6 @@ class ZenHubClient(
         }
     }
 
-    private fun getSprintByState(
-        sprintFilters: SprintFiltersInput,
-        firstSprints: Int,
-        orderSprintsBy: SprintOrderInput
-    ): List<GetSprintsByStateQuery.Node>? = runBlocking {
-        val query = GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
-        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
-    }
-
     fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
         val query = IssueByInfoQuery(githubRepositoryId, gitRepositoryId, issueNumber)
         apolloClient.query(query).toFlow().single().data?.issueByInfo
@@ -94,8 +85,36 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
     }
 
+    fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
+        val query = GetIssuesByPipelineQuery(pipeline.id)
+        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
+    }
+
+    /**
+     * Cannot move an issue to closed because closed is not a pipeline.
+     */
+    fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? = runBlocking {
+        val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
+        val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
+        apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
+    }
+
+    fun closeIssues(issueIds: List<String>): CloseIssuesMutation.CloseIssues? = runBlocking {
+        val mutation = CloseIssuesMutation(issueIds)
+        apolloClient.mutation(mutation).toFlow().single().data?.closeIssues
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
+    }
+
+    private fun getSprintByState(
+        sprintFilters: SprintFiltersInput,
+        firstSprints: Int,
+        orderSprintsBy: SprintOrderInput
+    ): List<GetSprintsByStateQuery.Node>? = runBlocking {
+        val query = GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
+        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
     }
 
     private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
@@ -126,5 +145,4 @@ class ZenHubClient(
 
         return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
     }
-
 }

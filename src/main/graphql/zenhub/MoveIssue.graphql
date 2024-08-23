@@ -1,0 +1,12 @@
+mutation MoveIssue($MoveIssueInput: MoveIssueInput!, $WorkspaceId: ID!) {
+  moveIssue(input: $MoveIssueInput) {
+    issue {
+      id
+      pipelineIssue(workspaceId: $WorkspaceId) {
+        pipeline {
+          id
+        }
+      }
+    }
+  }
+}
