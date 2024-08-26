@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.ziro.engineering"
-version = "1.4.1"
+version = "1.4.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
