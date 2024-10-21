@@ -1,0 +1,12 @@
+query GetIssues($workspaceId: ID!) {
+  workspace(id: $workspaceId) {
+    issues {
+      nodes {
+        number
+        repository {
+          id
+        }
+      }
+    }
+  }
+}

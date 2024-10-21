@@ -23,4 +23,10 @@ class ZenHubClientTest {
         val result = zenHubClient.getReleases()
         assertTrue(result.isNotEmpty())
     }
+
+    @Test
+    fun whenGetIssuesThenAtLeastOneIssue() {
+        val result = zenHubClient.getIssues()
+        assertTrue(result.isNotEmpty())
+    }
 }
