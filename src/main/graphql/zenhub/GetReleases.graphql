@@ -1,10 +1,10 @@
-query GetReleases($workspaceId: ID!) {
-    workspace(id: $workspaceId) {
-        releases {
-            nodes {
-                title
-                state
-            }
-        }
+query GetReleases($githubRepoId: Int!) {
+  repositoriesByGhId(ghIds: [$githubRepoId]) {
+    releases {
+      nodes {
+        title
+        state
+      }
     }
+  }
 }

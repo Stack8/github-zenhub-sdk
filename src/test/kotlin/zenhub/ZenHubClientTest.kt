@@ -19,9 +19,15 @@ class ZenHubClientTest {
     }
 
     @Test
-    fun whenGetReleasesThenAtLeastOneRelease() {
-        val result = zenHubClient.getReleases()
+    fun whenGetReleasesForValidRepoThenLeastOneRelease() {
+        val result = zenHubClient.getReleases(DEFAULT_GITHUB_REPOSITORY_ID)
         assertTrue(result.isNotEmpty())
+    }
+
+    @Test
+    fun whenGetReleasesForInvalidRepoThenNoReleases() {
+        val result = zenHubClient.getReleases(12345678)
+        assertTrue(result.isEmpty())
     }
 
     @Test

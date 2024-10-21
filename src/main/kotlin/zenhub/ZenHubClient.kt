@@ -12,7 +12,7 @@ import java.time.Instant
 /**
  * Default GitHub Repository ID - references the SMACS repository.
  */
-private const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
+const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
 private const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
 
 /**
@@ -90,9 +90,10 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
     }
 
-    fun getReleases(): List<GetReleasesQuery.Node> = runBlocking {
-        val query = GetReleasesQuery(DEFAULT_WORKSPACE_ID)
-        apolloClient.query(query).toFlow().single().data?.workspace?.releases?.nodes ?: emptyList()
+    fun getReleases(githubRepoId: Int): List<GetReleasesQuery.Node> = runBlocking {
+        val query = GetReleasesQuery(githubRepoId)
+        apolloClient.query(query).toFlow().single().data?.repositoriesByGhId?.get(0)?.releases?.nodes
+            ?: emptyList()
     }
 
     fun getIssues(): List<GetIssuesQuery.Node> = runBlocking {
