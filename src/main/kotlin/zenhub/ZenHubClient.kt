@@ -90,6 +90,11 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
     }
 
+    fun getReleases(): List<GetReleasesQuery.Node> = runBlocking {
+        val query = GetReleasesQuery(DEFAULT_WORKSPACE_ID)
+        apolloClient.query(query).toFlow().single().data?.workspace?.releases?.nodes ?: emptyList()
+    }
+
     /**
      * Cannot move an issue to closed because closed is not a pipeline.
      */

@@ -17,4 +17,10 @@ class ZenHubClientTest {
             assertNotNull(result)
         }
     }
+
+    @Test
+    fun whenGetReleasesThenAtLeastOneRelease() {
+        val result = zenHubClient.getReleases()
+        assertTrue(result.isNotEmpty())
+    }
 }

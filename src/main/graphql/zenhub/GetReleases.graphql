@@ -1,0 +1,11 @@
+query GetReleases($workspaceId: ID!) {
+    workspace(id: $workspaceId) {
+        id
+        displayName
+        releases {
+            nodes {
+                title
+                state
+            }
+        }
+    }
