@@ -96,9 +96,12 @@ class ZenHubClient(
             ?: emptyList()
     }
 
-    fun getIssues(): List<GetIssuesQuery.Node> = runBlocking {
-        val query = GetIssuesQuery(DEFAULT_WORKSPACE_ID)
-        apolloClient.query(query).toFlow().single().data?.workspace?.issues?.nodes ?: emptyList()
+    fun getIssuesByRelease(releaseId: String): List<SearchClosedIssuesQuery.Node> = runBlocking {
+        val input = IdInput(`in` = Optional.present(listOf(releaseId)))
+        val filter = IssueSearchFiltersInput(releases = Optional.present(input))
+
+        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.absent(), Optional.absent(), filter)
+        apolloClient.query(query).toFlow().single().data?.searchClosedIssues?.nodes ?: emptyList()
     }
 
     /**
@@ -129,7 +132,7 @@ class ZenHubClient(
     }
 
     private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after))
+        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after), IssueSearchFiltersInput())
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 
