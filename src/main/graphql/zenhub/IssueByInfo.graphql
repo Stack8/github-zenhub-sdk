@@ -5,7 +5,6 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
         issueNumber: $issueNumber
     ) {
         id
-        body
         number
         releases {
             nodes {

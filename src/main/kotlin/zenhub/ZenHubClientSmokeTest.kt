@@ -8,7 +8,6 @@ fun main() {
         val issue = client.issueByInfo(DEFAULT_GITHUB_REPOSITORY_ID, DEFAULT_GIT_REPOSITORY_ID, 15675)
         if (issue != null) {
             println("id: ${issue.id}")
-            println("body: ${issue.body}")
         }
         val fourteenDays = Duration.ofDays(28)
         val response = client.searchClosedIssuesBetween(
