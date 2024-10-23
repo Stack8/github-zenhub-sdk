@@ -96,14 +96,6 @@ class ZenHubClient(
             ?: emptyList()
     }
 
-    fun getIssuesByRelease(releaseId: String): List<SearchClosedIssuesQuery.Node> = runBlocking {
-        val input = IdInput(`in` = Optional.present(listOf(releaseId)))
-        val filter = IssueSearchFiltersInput(releases = Optional.present(input))
-
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.absent(), Optional.absent(), filter)
-        apolloClient.query(query).toFlow().single().data?.searchClosedIssues?.nodes ?: emptyList()
-    }
-
     /**
      * Cannot move an issue to closed because closed is not a pipeline.
      */
@@ -132,7 +124,7 @@ class ZenHubClient(
     }
 
     private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after), IssueSearchFiltersInput())
+        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after))
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 

@@ -36,25 +36,4 @@ class ZenHubClientTest {
         val releases = zenHubClient.getReleases(12345678)
         assertTrue(releases.isEmpty())
     }
-
-    @Test
-    fun whenGetIssueByReleaseForValidReleaseThenAtLeastOneIssue() {
-        val issues = zenHubClient.getIssuesByRelease(TestConstants.VALID_RELEASE_ID)
-
-        assertTrue(issues.isNotEmpty())
-        assertAll("issues",
-            issues.map {
-                {
-                    assertTrue(it.releases.nodes.size == 1)
-                    assertEquals(it.releases.nodes[0].title, TestConstants.VALID_RELEASE_NAME)
-                }
-            }
-        )
-    }
-
-    @Test
-    fun whenGetIssueByReleaseForInvalidReleaseThenNoIssues() {
-        val issues = zenHubClient.getIssuesByRelease("Z2lkOi8vcmFwdG9yL1JlbGVhc2UvMTA0NTE2")
-        assertTrue(issues.isEmpty())
-    }
 }
