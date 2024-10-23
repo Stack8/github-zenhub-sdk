@@ -8,7 +8,9 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
         number
         releases {
             nodes {
+                id
                 title
+                state
             }
         }
     }
