@@ -1,0 +1,11 @@
+query GetReleases($githubRepoId: Int!) {
+  repositoriesByGhId(ghIds: [$githubRepoId]) {
+    releases {
+      nodes {
+        id
+        title
+        state
+      }
+    }
+  }
+}
