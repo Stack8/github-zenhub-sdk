@@ -7,12 +7,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ZenHubClientTest {
-    object TestConstants {
-        const val VALID_RELEASE_ID = "Z2lkOi8vcmFwdG9yL1JlbGVhc2UvMTA0NTE1"
-        const val VALID_RELEASE_NAME = "SMACS 10.0.0"
-    }
-
     private val zenHubClient = ZenHubClient()
+
+    @Test
+    fun whenIssueByInfoThenCorrectIssueIsReturned() {
+        val issue = zenHubClient.issueByInfo(DEFAULT_GITHUB_REPOSITORY_ID, DEFAULT_GIT_REPOSITORY_ID, 18004)
+        assertEquals(18004, issue?.number)
+    }
 
     @Test
     fun whenGetIssuesByPipelineThenAtLeastZeroIssues() {
