@@ -12,8 +12,8 @@ import java.time.Instant
 /**
  * Default GitHub Repository ID - references the SMACS repository.
  */
-private const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
-private const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
+const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
+const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
 
 /**
  * Default Workspace ID - references the "Engineering Team" workspace.
@@ -71,8 +71,8 @@ class ZenHubClient(
         }
     }
 
-    fun issueByInfo(issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
-        val query = IssueByInfoQuery(githubRepositoryId, gitRepositoryId, issueNumber)
+    fun issueByInfo(githubRepoId: Int, gitRepoId: String, issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
+        val query = IssueByInfoQuery(githubRepoId, gitRepoId, issueNumber)
         apolloClient.query(query).toFlow().single().data?.issueByInfo
     }
 
@@ -88,6 +88,12 @@ class ZenHubClient(
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val query = GetIssuesByPipelineQuery(pipeline.id)
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
+    }
+
+    fun getReleases(githubRepoId: Int): List<GetReleasesQuery.Node> = runBlocking {
+        val query = GetReleasesQuery(githubRepoId)
+        apolloClient.query(query).toFlow().single().data?.repositoriesByGhId?.get(0)?.releases?.nodes
+            ?: emptyList()
     }
 
     /**
