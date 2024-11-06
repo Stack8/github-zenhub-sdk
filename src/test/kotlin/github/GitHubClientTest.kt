@@ -13,14 +13,32 @@ class GitHubClientTest {
     }
 
     @Test
-    fun whenGetRecentCommitsThenThereAre100Commits() {
-        val result = gitHubClient.getRecentCommits(branch = "develop")
-        assertEquals(100, result.size)
+    fun whenGetCommitsWithLess1PageThenCorrectAmountIsReturned() {
+        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE / 10)
+        assertEquals(MAX_COMMITS_IN_PAGE / 10, result.size)
     }
 
     @Test
-    fun whenGetRecentCommitsOnBadBranchThenThereAreNoCommits() {
-        val result = gitHubClient.getRecentCommits(branch = "bad-branch")
+    fun whenGetCommitsWith1PageThenCorrectAmountIsReturned() {
+        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE)
+        assertEquals(MAX_COMMITS_IN_PAGE, result.size)
+    }
+
+    @Test
+    fun whenGetCommitsWithMoreThan1PageThenCorrectAmountIsReturned() {
+        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2)
+        assertEquals(MAX_COMMITS_IN_PAGE * 2, result.size)
+    }
+
+    @Test
+    fun whenGetCommitsWith1PageAndLeftoverThenCorrectAmountIsReturned() {
+        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2 - 1)
+        assertEquals(MAX_COMMITS_IN_PAGE * 2 - 1, result.size)
+    }
+
+    @Test
+    fun whenGetCommitsOnBadBranchThenThereAreNoCommits() {
+        val result = gitHubClient.getCommits(branch = "bad-branch", numCommits = MAX_COMMITS_IN_PAGE)
         assertEquals(0, result.size)
     }
 }
