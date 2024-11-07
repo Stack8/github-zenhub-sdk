@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
 import kotlin.math.ceil
+import kotlin.math.min
 
 const val MAX_COMMITS_IN_PAGE = 100
 
@@ -48,18 +49,12 @@ class GitHubClient : AutoCloseable {
         numCommits: Int
     ): List<String> = runBlocking {
         val commits = mutableListOf<String>()
-        var numPages = ceil(numCommits.toDouble() / MAX_COMMITS_IN_PAGE).toInt()
         var hasNextPage = true
         var cursor = Optional.absent<String>()
         var commitsLeft = numCommits
 
-        while (numPages > 0 && hasNextPage) {
-            var numCommitsInPage = MAX_COMMITS_IN_PAGE
-
-            if (commitsLeft < MAX_COMMITS_IN_PAGE) {
-                numCommitsInPage = commitsLeft
-            }
-
+        while (commitsLeft > 0 && hasNextPage) {
+            val numCommitsInPage = min(MAX_COMMITS_IN_PAGE, commitsLeft)
             val query = GetBranchLogHistoryQuery(repoOwner, repoName, branch, numCommitsInPage, cursor)
             val response = apolloClient.query(query).toFlow().single()
 
@@ -73,7 +68,6 @@ class GitHubClient : AutoCloseable {
             }
 
             commitsLeft -= numCommitsInPage
-            numPages--
         }
 
         commits
