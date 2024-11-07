@@ -1,13 +1,17 @@
-query GetBranchLogHistory($owner: String!, $name: String!, $branch: String!) {
+query GetBranchLogHistory($owner: String!, $name: String!, $branch: String!, $first: Int!, $after: String) {
   repository(owner: $owner, name: $name) {
     ref(qualifiedName: $branch) {
       target {
         ... on Commit {
-          history {
+          history(first: $first, after: $after) {
             edges {
               node {
                 message
               }
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
             }
           }
         }
