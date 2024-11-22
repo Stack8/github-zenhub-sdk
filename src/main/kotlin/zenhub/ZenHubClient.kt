@@ -32,11 +32,14 @@ class ZenHubClient(
 
     fun searchClosedIssuesBetween(startTime: Instant, endTime: Instant): List<SearchClosedIssuesQuery.Node> {
         val results = ArrayList<SearchClosedIssuesQuery.Node>()
+        val issueOnlyFilter = IssueSearchFiltersInput(
+            displayType = Optional.present(DisplayFilter.issues),
+        )
         var earliestClosedDate: Instant
         var cursor: String? = null
 
         do {
-            val page = searchClosedIssues(cursor)
+            val page = searchClosedIssues(issueOnlyFilter, cursor)
             page?.nodes?.let { results.addAll(it) }
             earliestClosedDate = Instant.parse(results.last().closedAt.toString())
             cursor = page?.pageInfo?.endCursor
@@ -123,8 +126,8 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
     }
 
-    private fun searchClosedIssues(after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, Optional.present(100), Optional.presentIfNotNull(after))
+    private fun searchClosedIssues(filters: IssueSearchFiltersInput, after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
+        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, filters, Optional.present(100), Optional.presentIfNotNull(after))
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 
