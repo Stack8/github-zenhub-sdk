@@ -1,12 +1,13 @@
 
 query SearchClosedIssues(
     $workspaceId: ID!
+    $filters: IssueSearchFiltersInput!
     $first: Int
     $after: String
 ) {
     searchClosedIssues(
         workspaceId: $workspaceId
-        filters: {}
+        filters: $filters
         first: $first
         after: $after
     ) {
