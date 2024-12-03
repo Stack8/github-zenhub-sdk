@@ -1,3 +1,6 @@
+val repositoryUrl = uri("http://pz0mtl1repo1.infra.goziro.com/repository/github-zenhub-sdk/")
+val currentVersion = "1.7.0"
+
 plugins {
     kotlin("jvm") version "1.9.10"
     kotlin("plugin.serialization") version "1.9.10"
@@ -7,7 +10,11 @@ plugins {
 }
 
 group = "com.ziro.engineering"
-version = "1.7.0"
+version = if (project.hasProperty("snapshot") && project.property("snapshot") == "true") {
+    "${currentVersion}-SNAPSHOT"
+} else {
+    currentVersion
+}
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -15,6 +22,11 @@ sourceSets.main {
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = repositoryUrl
+        isAllowInsecureProtocol = true
+    }
 }
 
 publishing {
@@ -24,6 +36,17 @@ publishing {
             artifactId = "library"
             version = "${project.version}"
             from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            url = repositoryUrl
+            isAllowInsecureProtocol = true
+            credentials {
+                username = "gradle"
+                password = "gjb9wzn*pye5ZJB6zgm"
+            }
         }
     }
 }
