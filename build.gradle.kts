@@ -1,20 +1,13 @@
-val repositoryUrl = uri("http://pz0mtl1repo1.infra.goziro.com/repository/github-zenhub-sdk/")
-val currentVersion = "1.7.0"
-
 plugins {
-    kotlin("jvm") version "1.9.10"
-    kotlin("plugin.serialization") version "1.9.10"
     java
     `maven-publish`
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.serialization") version "1.9.10"
     id("com.apollographql.apollo3") version "3.8.2"
 }
 
 group = "com.ziro.engineering"
-version = if (project.hasProperty("snapshot") && project.property("snapshot") == "true") {
-    "${currentVersion}-SNAPSHOT"
-} else {
-    currentVersion
-}
+version = "1.7.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -22,11 +15,6 @@ sourceSets.main {
 
 repositories {
     mavenCentral()
-
-    maven {
-        url = repositoryUrl
-        isAllowInsecureProtocol = true
-    }
 }
 
 publishing {
@@ -34,14 +22,14 @@ publishing {
         create<MavenPublication>("mavenJava") {
             groupId = "com.ziro.engineering"
             artifactId = "library"
-            version = "${project.version}"
+            version = "1.7.0"
             from(components["java"])
         }
     }
 
     repositories {
         maven {
-            url = repositoryUrl
+            url = uri("http://pz0mtl1repo1.infra.goziro.com/repository/github-zenhub-sdk/")
             isAllowInsecureProtocol = true
             credentials {
                 username = "gradle"
