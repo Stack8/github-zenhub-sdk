@@ -1,0 +1,10 @@
+mutation setEstimate($setEstimateInput: SetEstimateInput!) {
+    setEstimate(input: $setEstimateInput) {
+        issue {
+            id
+            estimate {
+                value
+            }
+        }
+    }
+}
