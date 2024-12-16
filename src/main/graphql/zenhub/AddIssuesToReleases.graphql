@@ -1,4 +1,4 @@
-mutation AddIssuesToRelease($addIssuesToReleasesInput: AddIssuesToReleasesInput!) {
+mutation AddIssuesToReleases($addIssuesToReleasesInput: AddIssuesToReleasesInput!) {
     addIssuesToReleases(input: $addIssuesToReleasesInput) {
         releases {
             id
