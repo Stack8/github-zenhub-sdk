@@ -1,0 +1,13 @@
+query GetIssueEvents($repositoryGhId: Int!, $issueNumber: Int!) {
+    issueByInfo(repositoryGhId: $repositoryGhId, issueNumber: $issueNumber) {
+        id
+        timelineItems {
+            nodes {
+                type: key
+                id
+                data
+                createdAt
+            }
+        }
+    }
+}

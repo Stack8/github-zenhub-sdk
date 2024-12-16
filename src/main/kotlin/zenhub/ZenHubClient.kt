@@ -136,6 +136,11 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases
     }
 
+    fun getIssueEvents(githubRepoId: Int, issueNumber: Int) = runBlocking {
+        val query = GetIssueEventsQuery(githubRepoId, issueNumber)
+        apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
