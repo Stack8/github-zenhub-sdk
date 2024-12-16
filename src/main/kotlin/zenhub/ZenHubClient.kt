@@ -124,6 +124,12 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.node?.onRelease
     }
 
+    fun addIssuesToRelease(issueIds: List<String>, releaseId: String): AddIssuesToReleaseMutation.AddIssuesToReleases? = runBlocking {
+        val input = AddIssuesToReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+        val mutation = AddIssuesToReleaseMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToReleases
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
