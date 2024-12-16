@@ -136,7 +136,7 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases
     }
 
-    fun getIssueEvents(githubRepoId: Int, issueNumber: Int): List<GetIssueEventsQuery.Node>? = runBlocking {
+    fun getIssueEvents(githubRepoId: Int, issueNumber: Int): List<GetIssueEventsQuery.Node> = runBlocking {
         val query = GetIssueEventsQuery(githubRepoId, issueNumber)
         apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes ?: emptyList()
     }
@@ -150,7 +150,7 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.createRelease
     }
 
-    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node>? = runBlocking {
+    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node> = runBlocking {
         val query = GetEpicsForRepositoriesQuery(zenhubWorkspaceId, Optional.present(listOf(githubRepoId)))
         apolloClient.query(query).toFlow().single().data?.workspace?.epics?.nodes ?: emptyList()
     }
