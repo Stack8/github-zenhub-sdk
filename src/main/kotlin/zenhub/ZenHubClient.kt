@@ -136,18 +136,23 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases
     }
 
-    fun getIssueEvents(githubRepoId: Int, issueNumber: Int) = runBlocking {
+    fun getIssueEvents(githubRepoId: Int, issueNumber: Int): List<GetIssueEventsQuery.Node>? = runBlocking {
         val query = GetIssueEventsQuery(githubRepoId, issueNumber)
-        apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes
+        apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes ?: emptyList()
     }
 
-    fun createRelease(githubRepoId: Int, title: String, startOn: Instant, endOn: Instant) = runBlocking {
+    fun createRelease(githubRepoId: Int, title: String, startOn: Instant, endOn: Instant): CreateReleaseMutation.CreateRelease? = runBlocking {
         val input = CreateReleaseInput(
             Optional.absent(),
             ReleaseCreateInput(title, Optional.absent(), startOn.toString(), endOn.toString(), listOf(githubRepoId))
         )
         val mutation = CreateReleaseMutation(input)
         apolloClient.mutation(mutation).toFlow().single().data?.createRelease
+    }
+
+    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node>? = runBlocking {
+        val query = GetEpicsForRepositoriesQuery(zenhubWorkspaceId, Optional.present(listOf(githubRepoId)))
+        apolloClient.query(query).toFlow().single().data?.workspace?.epics?.nodes ?: emptyList()
     }
 
     override fun close() {

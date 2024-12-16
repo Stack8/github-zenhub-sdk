@@ -1,0 +1,11 @@
+query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!]) {
+    workspace(id: $workspaceId) {
+        epics(repositoryGhIds: $repositoryGhIds) {
+            nodes {
+                issue {
+                    number
+                }
+            }
+        }
+    }
+}
