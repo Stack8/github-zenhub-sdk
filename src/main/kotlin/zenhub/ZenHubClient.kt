@@ -119,6 +119,11 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
     }
 
+    fun getRelease(releaseId: String): GetReleaseQuery.OnRelease? = runBlocking {
+        val query = GetReleaseQuery(releaseId)
+        apolloClient.query(query).toFlow().single().data?.node?.onRelease
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }

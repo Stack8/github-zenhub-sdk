@@ -1,0 +1,18 @@
+query GetRelease($releaseId: ID!) {
+    node(id: $releaseId) {
+        ... on Release {
+            id
+            title
+            state
+            startOn
+            endOn
+            issues {
+                nodes {
+                    id
+                    title
+                    number
+                }
+            }
+        }
+    }
+}
