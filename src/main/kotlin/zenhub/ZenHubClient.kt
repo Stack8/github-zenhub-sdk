@@ -130,6 +130,12 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToReleases
     }
 
+    fun removeIssuesFromRelease(issueIds: List<String>, releaseId: String): RemoveIssuesFromReleasesMutation.RemoveIssuesFromReleases? = runBlocking {
+        val input = RemoveIssuesFromReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+        val mutation = RemoveIssuesFromReleasesMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
