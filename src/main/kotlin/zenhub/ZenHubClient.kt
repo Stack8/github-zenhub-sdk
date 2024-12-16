@@ -141,6 +141,15 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes
     }
 
+    fun createRelease(githubRepoId: Int, title: String, startOn: Instant, endOn: Instant) = runBlocking {
+        val input = CreateReleaseInput(
+            Optional.absent(),
+            ReleaseCreateInput(title, Optional.absent(), startOn.toString(), endOn.toString(), listOf(githubRepoId))
+        )
+        val mutation = CreateReleaseMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.createRelease
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
