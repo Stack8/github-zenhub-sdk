@@ -213,6 +213,26 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
     }
 
+    fun getEpicIssues(epicId: String): ArrayList<GetEpicIssuesQuery.Node1> {
+        val results = ArrayList<GetEpicIssuesQuery.Node1>()
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val pageEpicIssues = getEpicIssues(epicId, endCursor)
+            results.addAll(pageEpicIssues?.nodes ?: emptyList())
+            hasNextPage = pageEpicIssues?.pageInfo?.hasNextPage ?: false
+            endCursor = pageEpicIssues?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        return results
+    }
+
+    private fun getEpicIssues(epicId: String, endCursor: String?): GetEpicIssuesQuery.ChildIssues? = runBlocking {
+        val query = GetEpicIssuesQuery(epicId, Optional.presentIfNotNull(endCursor))
+        apolloClient.query(query).toFlow().single().data?.node?.onEpic?.childIssues
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }

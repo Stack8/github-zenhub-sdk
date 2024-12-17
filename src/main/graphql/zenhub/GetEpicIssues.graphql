@@ -1,0 +1,15 @@
+query GetEpicIssues($epicId: ID!, $endCursor: String) {
+    node(id: $epicId) {
+        ... on Epic {
+            childIssues(first: 100, after: $endCursor) {
+                nodes {
+                    number
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+}
