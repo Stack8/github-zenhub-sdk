@@ -1,10 +1,14 @@
-query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!]) {
+query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!], $endCursor: String) {
     workspace(id: $workspaceId) {
-        epics(repositoryGhIds: $repositoryGhIds) {
+        epics(repositoryGhIds: $repositoryGhIds, first: 100, after: $endCursor) {
             nodes {
                 issue {
                     number
                 }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
             }
         }
     }

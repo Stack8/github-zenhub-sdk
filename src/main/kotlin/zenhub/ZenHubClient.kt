@@ -165,9 +165,24 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.createRelease
     }
 
-    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node> = runBlocking {
-        val query = GetEpicsForRepositoriesQuery(zenhubWorkspaceId, Optional.present(listOf(githubRepoId)))
-        apolloClient.query(query).toFlow().single().data?.workspace?.epics?.nodes ?: emptyList()
+    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node> {
+        val results = ArrayList<GetEpicsForRepositoriesQuery.Node>();
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val pageEpics = getEpicsForRepository(githubRepoId, endCursor)
+            results.addAll(pageEpics?.nodes ?: emptyList())
+            hasNextPage = pageEpics?.pageInfo?.hasNextPage ?: false
+            endCursor = pageEpics?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        return results
+    }
+
+    private fun getEpicsForRepository(githubRepoId: Int, endCursor: String?): GetEpicsForRepositoriesQuery.Epics? = runBlocking {
+        val query = GetEpicsForRepositoriesQuery(zenhubWorkspaceId, Optional.present(listOf(githubRepoId)), Optional.presentIfNotNull(endCursor))
+        apolloClient.query(query).toFlow().single().data?.workspace?.epics
     }
 
     fun getMilestone(githubRepoId: Int, milestoneNumber: Int): GetMilestoneQuery.MilestoneByRepoGhIdAndNumber? = runBlocking {
