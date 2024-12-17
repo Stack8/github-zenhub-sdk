@@ -155,6 +155,11 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.workspace?.epics?.nodes ?: emptyList()
     }
 
+    fun getMilestone(githubRepoId: Int, milestoneNumber: Int): GetMilestoneQuery.MilestoneByRepoGhIdAndNumber? = runBlocking {
+        val query = GetMilestoneQuery(githubRepoId, milestoneNumber)
+        apolloClient.query(query).toFlow().single().data?.milestoneByRepoGhIdAndNumber
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
