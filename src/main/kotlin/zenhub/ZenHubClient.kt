@@ -74,10 +74,11 @@ class ZenHubClient(
         }
     }
 
-    fun issueByInfo(githubRepoId: Int, gitRepoId: String, issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
-        val query = IssueByInfoQuery(githubRepoId, gitRepoId, issueNumber)
-        apolloClient.query(query).toFlow().single().data?.issueByInfo
-    }
+    fun issueByInfo(githubRepoId: Int, gitRepoId: String, issueNumber: Int): IssueByInfoQuery.IssueByInfo? =
+        runBlocking {
+            val query = IssueByInfoQuery(githubRepoId, gitRepoId, issueNumber)
+            apolloClient.query(query).toFlow().single().data?.issueByInfo
+        }
 
     fun addIssuesToSprints(
         issueIds: List<String>,
@@ -126,7 +127,9 @@ class ZenHubClient(
 
         do {
             val pageRelease = getRelease(releaseId, endCursor)
-            val pageIssues = pageRelease?.issues?.nodes?.map { issue -> Release.Issue(issue.id, issue.title, issue.number) } ?: emptyList()
+            val pageIssues =
+                pageRelease?.issues?.nodes?.map { issue -> Release.Issue(issue.id, issue.title, issue.number) }
+                    ?: emptyList()
             releaseIssues.addAll(pageIssues)
 
             hasNextPage = pageRelease?.issues?.pageInfo?.hasNextPage ?: false
@@ -141,17 +144,19 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.node?.onRelease
     }
 
-    fun addIssuesToRelease(issueIds: List<String>, releaseId: String): AddIssuesToReleasesMutation.Release? = runBlocking {
-        val input = AddIssuesToReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
-        val mutation = AddIssuesToReleasesMutation(input)
-        apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToReleases?.releases?.get(0)
-    }
+    fun addIssuesToRelease(issueIds: List<String>, releaseId: String): AddIssuesToReleasesMutation.Release? =
+        runBlocking {
+            val input = AddIssuesToReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+            val mutation = AddIssuesToReleasesMutation(input)
+            apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToReleases?.releases?.get(0)
+        }
 
-    fun removeIssuesFromRelease(issueIds: List<String>, releaseId: String): RemoveIssuesFromReleasesMutation.Release? = runBlocking {
-        val input = RemoveIssuesFromReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
-        val mutation = RemoveIssuesFromReleasesMutation(input)
-        apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases?.releases?.get(0)
-    }
+    fun removeIssuesFromRelease(issueIds: List<String>, releaseId: String): RemoveIssuesFromReleasesMutation.Release? =
+        runBlocking {
+            val input = RemoveIssuesFromReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+            val mutation = RemoveIssuesFromReleasesMutation(input)
+            apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases?.releases?.get(0)
+        }
 
     fun getIssueEvents(githubRepoId: Int, issueNumber: Int): ArrayList<GetIssueEventsQuery.Node> {
         val results = ArrayList<GetIssueEventsQuery.Node>();
@@ -168,12 +173,21 @@ class ZenHubClient(
         return results
     }
 
-    private fun getIssueEvents(githubRepoId: Int, issueNumber: Int, endCursor: String?): GetIssueEventsQuery.TimelineItems? = runBlocking {
+    private fun getIssueEvents(
+        githubRepoId: Int,
+        issueNumber: Int,
+        endCursor: String?
+    ): GetIssueEventsQuery.TimelineItems? = runBlocking {
         val query = GetIssueEventsQuery(githubRepoId, issueNumber, Optional.presentIfNotNull(endCursor))
         apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems
     }
 
-    fun createRelease(githubRepoId: Int, title: String, startOn: Instant, endOn: Instant): CreateReleaseMutation.CreateRelease? = runBlocking {
+    fun createRelease(
+        githubRepoId: Int,
+        title: String,
+        startOn: Instant,
+        endOn: Instant
+    ): CreateReleaseMutation.CreateRelease? = runBlocking {
         val input = CreateReleaseInput(
             Optional.absent(),
             ReleaseCreateInput(title, Optional.absent(), startOn.toString(), endOn.toString(), listOf(githubRepoId))
@@ -197,21 +211,29 @@ class ZenHubClient(
         return results
     }
 
-    private fun getEpicsForRepository(githubRepoId: Int, endCursor: String?): GetEpicsForRepositoriesQuery.Epics? = runBlocking {
-        val query = GetEpicsForRepositoriesQuery(zenhubWorkspaceId, Optional.present(listOf(githubRepoId)), Optional.presentIfNotNull(endCursor))
-        apolloClient.query(query).toFlow().single().data?.workspace?.epics
-    }
+    private fun getEpicsForRepository(githubRepoId: Int, endCursor: String?): GetEpicsForRepositoriesQuery.Epics? =
+        runBlocking {
+            val query = GetEpicsForRepositoriesQuery(
+                zenhubWorkspaceId,
+                Optional.present(listOf(githubRepoId)),
+                Optional.presentIfNotNull(endCursor)
+            )
+            apolloClient.query(query).toFlow().single().data?.workspace?.epics
+        }
 
-    fun getMilestone(githubRepoId: Int, milestoneNumber: Int): GetMilestoneQuery.MilestoneByRepoGhIdAndNumber? = runBlocking {
-        val query = GetMilestoneQuery(githubRepoId, milestoneNumber)
-        apolloClient.query(query).toFlow().single().data?.milestoneByRepoGhIdAndNumber
-    }
+    fun getMilestone(githubRepoId: Int, milestoneNumber: Int): GetMilestoneQuery.MilestoneByRepoGhIdAndNumber? =
+        runBlocking {
+            val query = GetMilestoneQuery(githubRepoId, milestoneNumber)
+            apolloClient.query(query).toFlow().single().data?.milestoneByRepoGhIdAndNumber
+        }
 
-    fun setMilestoneStartDate(milestoneId: String, startDate: Instant): SetMilestoneStartDateMutation.Milestone? = runBlocking {
-        val input = SetMilestoneStartDateInput(Optional.absent(), milestoneId, Optional.present(startDate.toString()))
-        val mutation = SetMilestoneStartDateMutation(input)
-        apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
-    }
+    fun setMilestoneStartDate(milestoneId: String, startDate: Instant): SetMilestoneStartDateMutation.Milestone? =
+        runBlocking {
+            val input =
+                SetMilestoneStartDateInput(Optional.absent(), milestoneId, Optional.present(startDate.toString()))
+            val mutation = SetMilestoneStartDateMutation(input)
+            apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
+        }
 
     fun getEpicIssues(epicId: String): ArrayList<GetEpicIssuesQuery.Node1> {
         val results = ArrayList<GetEpicIssuesQuery.Node1>()
@@ -251,8 +273,12 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
     }
 
-    private fun searchClosedIssues(filters: IssueSearchFiltersInput, after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, filters, Optional.present(100), Optional.presentIfNotNull(after))
+    private fun searchClosedIssues(
+        filters: IssueSearchFiltersInput,
+        after: String?
+    ): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
+        val query =
+            SearchClosedIssuesQuery(zenhubWorkspaceId, filters, Optional.present(100), Optional.presentIfNotNull(after))
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 
