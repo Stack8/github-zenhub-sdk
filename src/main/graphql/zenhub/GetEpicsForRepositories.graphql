@@ -2,6 +2,7 @@ query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!], $endC
     workspace(id: $workspaceId) {
         epics(repositoryGhIds: $repositoryGhIds, first: 100, after: $endCursor) {
             nodes {
+                id
                 issue {
                     number
                 }
