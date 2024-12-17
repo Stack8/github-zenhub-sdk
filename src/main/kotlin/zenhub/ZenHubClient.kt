@@ -166,7 +166,7 @@ class ZenHubClient(
     }
 
     fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node> {
-        val results = ArrayList<GetEpicsForRepositoriesQuery.Node>();
+        val results = ArrayList<GetEpicsForRepositoriesQuery.Node>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
