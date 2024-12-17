@@ -136,9 +136,24 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases
     }
 
-    fun getIssueEvents(githubRepoId: Int, issueNumber: Int): List<GetIssueEventsQuery.Node> = runBlocking {
-        val query = GetIssueEventsQuery(githubRepoId, issueNumber)
-        apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems?.nodes ?: emptyList()
+    fun getIssueEvents(githubRepoId: Int, issueNumber: Int): ArrayList<GetIssueEventsQuery.Node> {
+        val results = ArrayList<GetIssueEventsQuery.Node>();
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val pageEvents = getIssueEvents(githubRepoId, issueNumber, endCursor)
+            results.addAll(pageEvents?.nodes ?: emptyList())
+            hasNextPage = pageEvents?.pageInfo?.hasNextPage ?: false
+            endCursor = pageEvents?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        return results
+    }
+
+    private fun getIssueEvents(githubRepoId: Int, issueNumber: Int, endCursor: String?): GetIssueEventsQuery.TimelineItems? = runBlocking {
+        val query = GetIssueEventsQuery(githubRepoId, issueNumber, Optional.presentIfNotNull(endCursor))
+        apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems
     }
 
     fun createRelease(githubRepoId: Int, title: String, startOn: Instant, endOn: Instant): CreateReleaseMutation.CreateRelease? = runBlocking {
