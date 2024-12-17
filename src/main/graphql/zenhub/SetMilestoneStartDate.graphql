@@ -1,0 +1,8 @@
+mutation SetMilestoneStartDate($input: SetMilestoneStartDateInput!) {
+    setMilestoneStartDate(input: $input) {
+        clientMutationId
+        milestone {
+            id
+        }
+    }
+}
