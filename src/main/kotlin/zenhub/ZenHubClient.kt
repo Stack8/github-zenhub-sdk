@@ -159,7 +159,7 @@ class ZenHubClient(
         }
 
     fun getIssueEvents(githubRepoId: Int, issueNumber: Int): ArrayList<GetIssueEventsQuery.Node> {
-        val results = ArrayList<GetIssueEventsQuery.Node>();
+        val results = ArrayList<GetIssueEventsQuery.Node>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
