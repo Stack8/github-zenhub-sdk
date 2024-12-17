@@ -119,8 +119,25 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
     }
 
-    fun getRelease(releaseId: String): GetReleaseQuery.OnRelease? = runBlocking {
-        val query = GetReleaseQuery(releaseId)
+    fun getRelease(releaseId: String): Release {
+        val releaseIssues = ArrayList<Release.Issue>()
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val pageRelease = getRelease(releaseId, endCursor)
+            val pageIssues = pageRelease?.issues?.nodes?.map { issue -> Release.Issue(issue.id, issue.title, issue.number) } ?: emptyList()
+            releaseIssues.addAll(pageIssues)
+
+            hasNextPage = pageRelease?.issues?.pageInfo?.hasNextPage ?: false
+            endCursor = pageRelease?.issues?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        return Release(releaseIssues)
+    }
+
+    private fun getRelease(releaseId: String, endCursor: String?): GetReleaseQuery.OnRelease? = runBlocking {
+        val query = GetReleaseQuery(releaseId, Optional.presentIfNotNull(endCursor))
         apolloClient.query(query).toFlow().single().data?.node?.onRelease
     }
 
