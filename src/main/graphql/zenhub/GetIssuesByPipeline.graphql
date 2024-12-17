@@ -3,6 +3,9 @@ query GetIssuesByPipeline($pipelineId: ID!) {
     nodes {
       id
       number
+      estimate {
+        value
+      }
       releases {
         nodes {
           title
