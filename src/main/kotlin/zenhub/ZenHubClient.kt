@@ -233,6 +233,11 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.node?.onEpic?.childIssues
     }
 
+    fun getPipelines(): List<GetPipelinesQuery.Node>? = runBlocking {
+        val query = GetPipelinesQuery(zenhubWorkspaceId)
+        apolloClient.query(query).toFlow().single().data?.workspace?.pipelinesConnection?.nodes
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
