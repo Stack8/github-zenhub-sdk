@@ -27,7 +27,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             groupId = "com.ziro.engineering"
-            artifactId = "library"
+            artifactId = "github-zenhub-sdk"
             version = currentVersion
             from(components["java"])
         }
@@ -35,7 +35,7 @@ publishing {
 
     repositories {
         maven {
-            url = uri("https://repository.goziro.com/repository/github-zenhub-sdk/")
+            url = uri("https://repository.goziro.com/repository/stacks/")
             credentials {
                 username = project.findProperty("sonatypeUsername") as String?
                 password = project.findProperty("sonatypePassword") as String?
