@@ -35,7 +35,7 @@ publishing {
 
     repositories {
         maven {
-            url = uri("https://repository.goziro.com/repository/stacks/")
+            url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
                 username = project.findProperty("sonatypeUsername") as String?
                 password = project.findProperty("sonatypePassword") as String?
