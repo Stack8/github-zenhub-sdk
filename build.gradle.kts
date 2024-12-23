@@ -1,13 +1,19 @@
+var currentVersion = "1.8.0"
+
+if (project.hasProperty("snapshot")) {
+    currentVersion = "${currentVersion}-SNAPSHOT"
+}
+
 plugins {
-    kotlin("jvm") version "1.9.10"
-    kotlin("plugin.serialization") version "1.9.10"
     java
     `maven-publish`
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.serialization") version "1.9.10"
     id("com.apollographql.apollo3") version "3.8.2"
 }
 
 group = "com.ziro.engineering"
-version = "1.7.0"
+version = currentVersion
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -21,9 +27,19 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             groupId = "com.ziro.engineering"
-            artifactId = "library"
-            version = "${project.version}"
+            artifactId = "github-zenhub-sdk"
+            version = currentVersion
             from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            url = uri("https://repository.goziro.com/repository/engineering/")
+            credentials {
+                username = project.findProperty("sonatypeUsername") as String?
+                password = project.findProperty("sonatypePassword") as String?
+            }
         }
     }
 }

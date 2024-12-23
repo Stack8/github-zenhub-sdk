@@ -64,3 +64,21 @@ When you build the project, kotlin code will be automatically generated from the
 [parallel-change-pattern]: https://martinfowler.com/bliki/ParallelChange.html
 [semantic-versioning-2]: https://semver.org/
 [zenhub-client-smoke-test]: src/main/kotlin/zenhub/ZenHubClientSmokeTest.kt
+
+# Publishing
+
+You will need to set up your credentials for Sonatype in your `~/.gradle/gradle.properties` file. Add the following:
+```properties
+sonatypeUsername=gradle
+sonatypePassword=<get password from 1pass>
+```
+
+To publish the SDK, you can run the following command:
+```bash
+./gradlew publish
+```
+
+To publish a snapshot for use during development, you can run the following command:
+```bash
+./gradlew publish -Psnapshot
+```
