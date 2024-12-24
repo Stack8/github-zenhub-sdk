@@ -37,8 +37,8 @@ publishing {
         maven {
             url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
-                username = project.findProperty("sonatypeUsername") as String?
-                password = project.findProperty("sonatypePassword") as String?
+                username = System.getenv("SONATYPE_USERNAME") as String
+                password = System.getenv("SONATYPE_PASSWORD") as String
             }
         }
     }
