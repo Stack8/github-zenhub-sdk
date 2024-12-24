@@ -67,10 +67,11 @@ When you build the project, kotlin code will be automatically generated from the
 
 # Publishing
 
-You will need to set up your credentials for Sonatype in your `~/.gradle/gradle.properties` file. Add the following:
-```properties
-sonatypeUsername=gradle
-sonatypePassword=<get password from 1pass>
+You will need to configure your environment variables for Sonatype. In your rc file, add the following:
+
+```bash
+export SONATYPE_USERNAME=gradle
+export SONATYPE_PASSWORD=<get password from 1pass>
 ```
 
 To publish the SDK, you can run the following command:
