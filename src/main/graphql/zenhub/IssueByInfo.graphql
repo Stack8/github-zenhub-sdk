@@ -1,17 +1,49 @@
 query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!) {
-    issueByInfo(
-        repositoryGhId: $repositoryGhId
-        repositoryId: $repositoryId
-        issueNumber: $issueNumber
-    ) {
-        id
-        number
-        releases {
-            nodes {
-                id
-                title
-                state
-            }
-        }
+  issueByInfo(
+    repositoryGhId: $repositoryGhId
+    repositoryId: $repositoryId
+    issueNumber: $issueNumber
+  ) {
+    id
+    title
+    number
+    estimate {
+      value
     }
+    labels(first: 100) {
+      totalCount
+      nodes {
+        name
+      }
+    }
+    sprints {
+      nodes {
+        id
+        name
+        startAt
+        endAt
+        state
+      }
+    }
+    releases {
+      nodes {
+        title
+        state
+      }
+    }
+    htmlUrl
+    closedAt
+    connectedPrs {
+      nodes {
+        state
+        number
+        pullRequestObject {
+          state
+        }
+        repository {
+          name
+        }
+      }
+    }
+  }
 }
