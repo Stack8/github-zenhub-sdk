@@ -1,9 +1,3 @@
-var currentVersion = "2.0.0"
-
-if (project.hasProperty("snapshot")) {
-    currentVersion = "${currentVersion}-SNAPSHOT"
-}
-
 plugins {
     java
     `maven-publish`
@@ -13,7 +7,7 @@ plugins {
 }
 
 group = "com.ziro.engineering"
-version = currentVersion
+version = "2.0.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -27,19 +21,9 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             groupId = "com.ziro.engineering"
-            artifactId = "github-zenhub-sdk"
-            version = currentVersion
+            artifactId = "library"
+            version = "${project.version}"
             from(components["java"])
-        }
-    }
-
-    repositories {
-        maven {
-            url = uri("https://repository.goziro.com/repository/engineering/")
-            credentials {
-                username = System.getenv("SONATYPE_USERNAME") as String
-                password = System.getenv("SONATYPE_PASSWORD") as String
-            }
         }
     }
 }
