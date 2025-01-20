@@ -1,7 +1,7 @@
 plugins {
     java
     `maven-publish`
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "1.9.10"
     id("com.apollographql.apollo3") version "3.8.2"
 }
