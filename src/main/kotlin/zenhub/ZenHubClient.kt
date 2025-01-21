@@ -116,8 +116,8 @@ class ZenHubClient(
     /**
      * Cannot move an issue to closed because closed is not a pipeline.
      */
-    fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? = runBlocking {
-        val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
+    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? = runBlocking {
+        val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
         val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
         apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
     }
