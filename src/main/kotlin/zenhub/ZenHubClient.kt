@@ -108,6 +108,11 @@ class ZenHubClient(
             ?: emptyList()
     }
 
+    fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
+        val query = GetSprintsQuery(workspaceId)
+        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes ?: emptyList()
+    }
+
     /**
      * Cannot move an issue to closed because closed is not a pipeline.
      */
