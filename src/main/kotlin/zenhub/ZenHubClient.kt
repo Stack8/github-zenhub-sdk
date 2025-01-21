@@ -88,6 +88,15 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
     }
 
+    fun removeIssuesFromSprints(
+        issueIds: List<String>,
+        sprintIds: List<String>
+    ): RemoveIssuesFromSprintsMutation.RemoveIssuesFromSprints? = runBlocking {
+        val input = RemoveIssuesFromSprintsInput(Optional.absent(), issueIds, sprintIds)
+        val mutation = RemoveIssuesFromSprintsMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromSprints
+    }
+
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val query = GetIssuesByPipelineQuery(pipeline.id)
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
