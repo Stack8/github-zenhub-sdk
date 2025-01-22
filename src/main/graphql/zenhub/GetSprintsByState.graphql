@@ -1,20 +1,19 @@
-query GetSprintsByState(
-    $workspaceId: ID!
-    $sprintFilters: SprintFiltersInput!
-    $firstSprints: Int!
-    $orderSprintsBy: SprintOrderInput!
-) {
-    workspace(id: $workspaceId) {
+query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, $firstSprints: Int!, $orderSprintsBy: SprintOrderInput!) {
+  workspace(id: $workspaceId) {
+    id
+    displayName
+    sprints(first: $firstSprints, filters: $sprintFilters, orderBy: $orderSprintsBy) {
+      nodes {
         id
-        displayName
-        sprints(first: $firstSprints, filters: $sprintFilters, orderBy: $orderSprintsBy) {
-            nodes {
-                id
-                name
-                startAt
-                endAt
-                state
-            }
+        name
+        startAt
+        endAt
+        issues {
+          nodes {
+            id
+          }
         }
+      }
     }
+  }
 }
