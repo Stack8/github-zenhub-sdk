@@ -1,0 +1,8 @@
+mutation RemoveIssuesFromSprints($input: RemoveIssuesFromSprintsInput!) {
+  removeIssuesFromSprints(input: $input) {
+    sprints {
+      id
+      name
+    }
+  }
+}
