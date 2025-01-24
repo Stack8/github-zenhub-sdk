@@ -89,6 +89,15 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToSprints
     }
 
+    fun removeIssuesFromSprints(
+        issueIds: List<String>,
+        sprintIds: List<String>
+    ): RemoveIssuesFromSprintsMutation.RemoveIssuesFromSprints? = runBlocking {
+        val input = RemoveIssuesFromSprintsInput(Optional.absent(), issueIds, sprintIds)
+        val mutation = RemoveIssuesFromSprintsMutation(input)
+        apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromSprints
+    }
+
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val query = GetIssuesByPipelineQuery(pipeline.id)
         apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
@@ -100,11 +109,16 @@ class ZenHubClient(
             ?: emptyList()
     }
 
+    fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
+        val query = GetSprintsQuery(workspaceId)
+        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes ?: emptyList()
+    }
+
     /**
      * Cannot move an issue to closed because closed is not a pipeline.
      */
-    fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? = runBlocking {
-        val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
+    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? = runBlocking {
+        val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
         val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
         apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
     }

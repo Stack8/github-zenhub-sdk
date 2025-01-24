@@ -1,13 +1,13 @@
 plugins {
-    kotlin("jvm") version "1.9.10"
-    kotlin("plugin.serialization") version "1.9.10"
     java
     `maven-publish`
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "1.9.10"
     id("com.apollographql.apollo3") version "3.8.2"
 }
 
 group = "com.ziro.engineering"
-version = "1.8.0"
+version = "2.0.1"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
