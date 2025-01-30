@@ -1,11 +1,13 @@
 package zenhub
 
+import com.ziro.engineering.zenhub.graphql.sdk.type.ReleaseState
+import java.time.LocalDate
+
 data class Release(
-    val issues: List<Issue>
-) {
-    data class Issue(
-        val id: String,
-        val title: String,
-        val number: Int
-    )
-}
+    val id: String,
+    val title: String,
+    val state: ReleaseState,
+    val startOn: LocalDate,
+    val endOn: LocalDate,
+    val issueIds: List<String>
+)

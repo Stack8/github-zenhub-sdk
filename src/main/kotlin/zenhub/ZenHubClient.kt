@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * Default GitHub Repository ID - references the SMACS repository.
@@ -134,23 +135,32 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
     }
 
-    fun getRelease(releaseId: String): Release {
-        val releaseIssues = ArrayList<Release.Issue>()
+    fun getRelease(releaseId: String): Release? {
+        var queryResult: GetReleaseQuery.OnRelease?
+        val releaseIssueIds = mutableListOf<String>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
         do {
-            val pageRelease = getRelease(releaseId, endCursor)
+            queryResult = getRelease(releaseId, endCursor)
             val pageIssues =
-                pageRelease?.issues?.nodes?.map { issue -> Release.Issue(issue.id, issue.title, issue.number) }
-                    ?: emptyList()
-            releaseIssues.addAll(pageIssues)
+                queryResult?.issues?.nodes?.map { issue -> issue.id } ?: emptyList()
+            releaseIssueIds.addAll(pageIssues)
 
-            hasNextPage = pageRelease?.issues?.pageInfo?.hasNextPage ?: false
-            endCursor = pageRelease?.issues?.pageInfo?.endCursor
+            hasNextPage = queryResult?.issues?.pageInfo?.hasNextPage ?: false
+            endCursor = queryResult?.issues?.pageInfo?.endCursor
         } while (hasNextPage)
 
-        return Release(releaseIssues)
+        return queryResult?.let {
+            Release(
+                queryResult.id,
+                queryResult.title,
+                queryResult.state,
+                LocalDate.parse(queryResult.startOn.toString()),
+                LocalDate.parse(queryResult.endOn.toString()),
+                releaseIssueIds
+            )
+        }
     }
 
     private fun getRelease(releaseId: String, endCursor: String?): GetReleaseQuery.OnRelease? = runBlocking {

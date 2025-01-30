@@ -1,11 +1,14 @@
 query GetRelease($releaseId: ID!,  $endCursor: String) {
     node(id: $releaseId) {
         ... on Release {
+            id,
+            title,
+            state,
+            startOn,
+            endOn,
             issues(first: 100, after: $endCursor) {
                 nodes {
                     id
-                    title
-                    number
                 }
                 pageInfo {
                     hasNextPage
