@@ -284,6 +284,11 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.workspace?.pipelinesConnection?.nodes
     }
 
+    fun getIssuesByIds(ids: List<String>): List<GetIssuesQuery.Issue>? = runBlocking {
+        val query = GetIssuesQuery(ids)
+        apolloClient.query(query).toFlow().single().data?.issues
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
