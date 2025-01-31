@@ -137,7 +137,7 @@ class ZenHubClient(
 
     fun getRelease(releaseId: String): Release? {
         var queryResult: GetReleaseQuery.OnRelease?
-        val releaseIssueIds = mutableListOf<String>()
+        val releaseIssueIds = mutableSetOf<String>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
