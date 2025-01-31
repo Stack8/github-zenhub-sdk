@@ -124,15 +124,15 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
     }
 
-    fun closeIssues(issueIds: List<String>): CloseIssuesMutation.CloseIssues? = runBlocking {
-        val mutation = CloseIssuesMutation(issueIds)
-        apolloClient.mutation(mutation).toFlow().single().data?.closeIssues
-    }
-
     fun setEstimate(issueId: String, value: Double): SetEstimateMutation.SetEstimate? = runBlocking {
         val input = SetEstimateInput(Optional.absent(), Optional.present(value), issueId)
         val mutation = SetEstimateMutation(input)
         apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
+    }
+
+    fun closeIssues(issueIds: List<String>): CloseIssuesMutation.CloseIssues? = runBlocking {
+        val mutation = CloseIssuesMutation(issueIds)
+        apolloClient.mutation(mutation).toFlow().single().data?.closeIssues
     }
 
     fun getRelease(releaseId: String): Release? {
