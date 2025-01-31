@@ -9,5 +9,5 @@ data class Release(
     val state: ReleaseState,
     val startOn: LocalDate,
     val endOn: LocalDate,
-    val issueIds: List<String>
+    val issueIds: Set<String>
 )
