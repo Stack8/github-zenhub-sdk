@@ -27,8 +27,7 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
     }
     releases {
       nodes {
-        title
-        state
+        id
       }
     }
     htmlUrl
