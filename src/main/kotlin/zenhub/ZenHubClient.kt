@@ -168,16 +168,16 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.node?.onRelease
     }
 
-    fun addIssuesToRelease(issueIds: List<String>, releaseId: String): AddIssuesToReleasesMutation.Release? =
+    fun addIssuesToRelease(issueIds: Set<String>, releaseId: String): AddIssuesToReleasesMutation.Release? =
         runBlocking {
-            val input = AddIssuesToReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+            val input = AddIssuesToReleasesInput(Optional.absent(), issueIds.toList(), listOf(releaseId))
             val mutation = AddIssuesToReleasesMutation(input)
             apolloClient.mutation(mutation).toFlow().single().data?.addIssuesToReleases?.releases?.get(0)
         }
 
-    fun removeIssuesFromRelease(issueIds: List<String>, releaseId: String): RemoveIssuesFromReleasesMutation.Release? =
+    fun removeIssuesFromRelease(issueIds: Set<String>, releaseId: String): RemoveIssuesFromReleasesMutation.Release? =
         runBlocking {
-            val input = RemoveIssuesFromReleasesInput(Optional.absent(), issueIds, listOf(releaseId))
+            val input = RemoveIssuesFromReleasesInput(Optional.absent(), issueIds.toList(), listOf(releaseId))
             val mutation = RemoveIssuesFromReleasesMutation(input)
             apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromReleases?.releases?.get(0)
         }
