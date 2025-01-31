@@ -209,8 +209,8 @@ class ZenHubClient(
     fun createRelease(
         githubRepoId: Int,
         title: String,
-        startOn: Instant,
-        endOn: Instant
+        startOn: LocalDate,
+        endOn: LocalDate
     ): CreateReleaseMutation.CreateRelease? = runBlocking {
         val input = CreateReleaseInput(
             Optional.absent(),
