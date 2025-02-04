@@ -279,14 +279,14 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.node?.onEpic?.childIssues
     }
 
-    fun getPipelines(): List<GetPipelinesQuery.Node>? = runBlocking {
+    fun getPipelines(): List<GetPipelinesQuery.Node> = runBlocking {
         val query = GetPipelinesQuery(zenhubWorkspaceId)
-        apolloClient.query(query).toFlow().single().data?.workspace?.pipelinesConnection?.nodes
+        apolloClient.query(query).toFlow().single().data?.workspace?.pipelinesConnection?.nodes ?: emptyList()
     }
 
-    fun getIssuesByIds(ids: List<String>): List<GetIssuesQuery.Issue>? = runBlocking {
-        val query = GetIssuesQuery(ids)
-        apolloClient.query(query).toFlow().single().data?.issues
+    fun getIssuesByIds(ids: Set<String>): Set<GetIssuesQuery.Issue> = runBlocking {
+        val query = GetIssuesQuery(ids.toList())
+        apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
     }
 
     override fun close() {
