@@ -251,7 +251,7 @@ class ZenHubClient(
             apolloClient.query(query).toFlow().single().data?.milestoneByRepoGhIdAndNumber
         }
 
-    fun setMilestoneStartDate(milestoneId: String, startDate: Instant): SetMilestoneStartDateMutation.Milestone? =
+    fun setMilestoneStartDate(milestoneId: String, startDate: Instant?): SetMilestoneStartDateMutation.Milestone? =
         runBlocking {
             val input =
                 SetMilestoneStartDateInput(Optional.absent(), milestoneId, Optional.present(startDate.toString()))
