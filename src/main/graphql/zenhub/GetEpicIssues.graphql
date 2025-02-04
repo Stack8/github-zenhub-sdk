@@ -3,6 +3,7 @@ query GetEpicIssues($epicId: ID!, $endCursor: String) {
         ... on Epic {
             childIssues(first: 100, after: $endCursor) {
                 nodes {
+                    id
                     number
                 }
                 pageInfo {
