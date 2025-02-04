@@ -4,6 +4,7 @@ query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!], $endC
             nodes {
                 id
                 issue {
+                    id
                     number
                 }
             }
