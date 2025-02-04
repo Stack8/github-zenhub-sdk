@@ -259,24 +259,32 @@ class ZenHubClient(
             apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
         }
 
-    fun getEpicIssues(epicId: String): ArrayList<GetEpicIssuesQuery.Node1> {
-        val results = ArrayList<GetEpicIssuesQuery.Node1>()
+    fun getEpicById(epicId: String): EpicData? {
+        var queryResult: GetEpicByIdQuery.OnEpic?
+        var childIssuesIds = mutableSetOf<String>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
         do {
-            val pageEpicIssues = getEpicIssues(epicId, endCursor)
-            results.addAll(pageEpicIssues?.nodes ?: emptyList())
-            hasNextPage = pageEpicIssues?.pageInfo?.hasNextPage ?: false
-            endCursor = pageEpicIssues?.pageInfo?.endCursor
+            queryResult = getEpicById(epicId, endCursor)
+            val pageChildIssuesIds = queryResult?.childIssues?.nodes?.map { it.id } ?: emptySet()
+            childIssuesIds.addAll(pageChildIssuesIds)
+            hasNextPage = queryResult?.childIssues?.pageInfo?.hasNextPage ?: false
+            endCursor = queryResult?.childIssues?.pageInfo?.endCursor
         } while (hasNextPage)
 
-        return results
+        return queryResult?.let {
+            EpicData(
+                queryResult.id,
+                queryResult.issue.id,
+                childIssuesIds
+            )
+        }
     }
 
-    private fun getEpicIssues(epicId: String, endCursor: String?): GetEpicIssuesQuery.ChildIssues? = runBlocking {
-        val query = GetEpicIssuesQuery(epicId, Optional.presentIfNotNull(endCursor))
-        apolloClient.query(query).toFlow().single().data?.node?.onEpic?.childIssues
+    private fun getEpicById(epicId: String, endCursor: String?): GetEpicByIdQuery.OnEpic? = runBlocking {
+        val query = GetEpicByIdQuery(epicId, Optional.presentIfNotNull(endCursor))
+        apolloClient.query(query).toFlow().single().data?.node?.onEpic
     }
 
     fun getPipelines(): List<GetPipelinesQuery.Node> = runBlocking {
