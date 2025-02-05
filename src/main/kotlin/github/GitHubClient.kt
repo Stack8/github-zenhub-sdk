@@ -5,11 +5,10 @@ import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
 import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
+import kotlin.math.min
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
-import kotlin.math.ceil
-import kotlin.math.min
 
 const val MAX_COMMITS_IN_PAGE = 100
 
@@ -20,7 +19,8 @@ private const val GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 class GitHubClient : AutoCloseable {
 
     private val apolloClient: ApolloClient =
-        ApolloClient.Builder().serverUrl(GITHUB_GRAPHQL_URL)
+        ApolloClient.Builder()
+            .serverUrl(GITHUB_GRAPHQL_URL)
             .addHttpHeader("Authorization", "Bearer ${System.getenv("GITHUB_API_TOKEN")}")
             .build()
 
@@ -55,12 +55,14 @@ class GitHubClient : AutoCloseable {
 
         while (commitsLeft > 0 && hasNextPage) {
             val numCommitsInPage = min(MAX_COMMITS_IN_PAGE, commitsLeft)
-            val query = GetBranchLogHistoryQuery(repoOwner, repoName, branch, numCommitsInPage, cursor)
+            val query =
+                GetBranchLogHistoryQuery(repoOwner, repoName, branch, numCommitsInPage, cursor)
             val response = apolloClient.query(query).toFlow().single()
 
-            commits.addAll(response.data?.repository?.ref?.target?.onCommit?.history?.edges?.mapNotNull {
-                it?.node?.message
-            } ?: emptyList())
+            commits.addAll(
+                response.data?.repository?.ref?.target?.onCommit?.history?.edges?.mapNotNull {
+                    it?.node?.message
+                } ?: emptyList())
 
             response.data?.repository?.ref?.target?.onCommit?.history?.pageInfo?.let {
                 cursor = Optional.presentIfNotNull(it.endCursor)

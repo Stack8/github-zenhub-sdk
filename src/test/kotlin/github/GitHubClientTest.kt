@@ -1,7 +1,7 @@
 package github
 
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
 
 class GitHubClientTest {
     private val gitHubClient = GitHubClient()
@@ -14,7 +14,8 @@ class GitHubClientTest {
 
     @Test
     fun whenGetCommitsWithLess1PageThenCorrectAmountIsReturned() {
-        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE / 10)
+        val result =
+            gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE / 10)
         assertEquals(MAX_COMMITS_IN_PAGE / 10, result.size)
     }
 
@@ -26,19 +27,22 @@ class GitHubClientTest {
 
     @Test
     fun whenGetCommitsWithMoreThan1PageThenCorrectAmountIsReturned() {
-        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2)
+        val result =
+            gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2)
         assertEquals(MAX_COMMITS_IN_PAGE * 2, result.size)
     }
 
     @Test
     fun whenGetCommitsWith1PageAndLeftoverThenCorrectAmountIsReturned() {
-        val result = gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2 - 1)
+        val result =
+            gitHubClient.getCommits(branch = "develop", numCommits = MAX_COMMITS_IN_PAGE * 2 - 1)
         assertEquals(MAX_COMMITS_IN_PAGE * 2 - 1, result.size)
     }
 
     @Test
     fun whenGetCommitsOnBadBranchThenThereAreNoCommits() {
-        val result = gitHubClient.getCommits(branch = "bad-branch", numCommits = MAX_COMMITS_IN_PAGE)
+        val result =
+            gitHubClient.getCommits(branch = "bad-branch", numCommits = MAX_COMMITS_IN_PAGE)
         assertEquals(0, result.size)
     }
 }
