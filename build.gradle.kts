@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "1.9.10"
     id("com.apollographql.apollo3") version "3.8.2"
+    id("com.diffplug.spotless") version "7.0.2"
 }
 
 group = "com.ziro.engineering"
@@ -58,6 +59,17 @@ apollo {
             endpointUrl.set("https://api.github.com/graphql")
             schemaFile.set(file("src/main/graphql/github/schema.json"))
         }
+    }
+}
+
+spotless {
+    kotlin {
+        ktfmt().configure {
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+            it.setRemoveUnusedImports(true)
+        }
+        targetExclude("build/**")
     }
 }
 

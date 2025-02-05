@@ -15,9 +15,7 @@ import okio.ByteString.Companion.encodeUtf8
  * @throws NotImplementedError [JsonReader.Token.ANY] token is not implemented.
  */
 fun JsonReader.readAsUtf8String(): String {
-    return Buffer().also {
-        BufferedSinkJsonWriter(it).run(::writeInto)
-    }.readUtf8()
+    return Buffer().also { BufferedSinkJsonWriter(it).run(::writeInto) }.readUtf8()
 }
 
 /**
@@ -31,7 +29,9 @@ fun JsonReader.writeInto(writer: JsonWriter) {
     val reader = this
     var depth = 0
 
-    while (reader.hasNext() || (reader.peek() == JsonReader.Token.END_ARRAY || reader.peek() == JsonReader.Token.END_OBJECT)) {
+    while (reader.hasNext() ||
+        (reader.peek() == JsonReader.Token.END_ARRAY ||
+            reader.peek() == JsonReader.Token.END_OBJECT)) {
         // hasNext() returns false when peek() returns END_OBJECT or END_ARRAY token
 
         val token = reader.peek()
@@ -48,8 +48,7 @@ fun JsonReader.writeInto(writer: JsonWriter) {
                 writer.endArray()
                 depth--
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.BEGIN_OBJECT -> {
@@ -63,8 +62,7 @@ fun JsonReader.writeInto(writer: JsonWriter) {
                 writer.endObject()
                 depth--
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.NAME -> {
@@ -76,40 +74,35 @@ fun JsonReader.writeInto(writer: JsonWriter) {
                 val value = reader.nextString()
                 writer.value(value.orEmpty())
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.NUMBER -> {
                 val value = reader.nextNumber()
                 writer.value(value)
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.LONG -> {
                 val value = reader.nextLong()
                 writer.value(value)
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.BOOLEAN -> {
                 val value = reader.nextBoolean()
                 writer.value(value)
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.NULL -> {
                 reader.nextNull()
                 writer.nullValue()
 
-                if (depth == 0)
-                    break
+                if (depth == 0) break
             }
 
             JsonReader.Token.END_DOCUMENT -> {
@@ -126,7 +119,5 @@ fun JsonReader.writeInto(writer: JsonWriter) {
 
 /** Creates new [JsonReader] from this plain [json]. */
 internal fun jsonReader(json: String): JsonReader {
-    return BufferedSourceJsonReader(Buffer().also {
-        it.write(json.encodeUtf8())
-    })
+    return BufferedSourceJsonReader(Buffer().also { it.write(json.encodeUtf8()) })
 }
