@@ -4,20 +4,16 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
+import java.time.Instant
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
-import java.time.Instant
 
-/**
- * Default GitHub Repository ID - references the SMACS repository.
- */
+/** Default GitHub Repository ID - references the SMACS repository. */
 const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
 const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
 
-/**
- * Default Workspace ID - references the "Engineering Team" workspace.
- */
+/** Default Workspace ID - references the "Engineering Team" workspace. */
 private const val DEFAULT_WORKSPACE_ID = "59c54eb49d9e774e473597f1"
 private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
@@ -27,14 +23,21 @@ class ZenHubClient(
     private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID
 ) : AutoCloseable {
 
-    private val apolloClient: ApolloClient = ApolloClient.Builder().serverUrl(ZENHUB_GRAPHQL_URL)
-        .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}").build()
+    private val apolloClient: ApolloClient =
+        ApolloClient.Builder()
+            .serverUrl(ZENHUB_GRAPHQL_URL)
+            .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}")
+            .build()
 
-    fun searchClosedIssuesBetween(startTime: Instant, endTime: Instant): List<SearchClosedIssuesQuery.Node> {
+    fun searchClosedIssuesBetween(
+        startTime: Instant,
+        endTime: Instant
+    ): List<SearchClosedIssuesQuery.Node> {
         val results = ArrayList<SearchClosedIssuesQuery.Node>()
-        val issueOnlyFilter = IssueSearchFiltersInput(
-            displayType = Optional.present(DisplayFilter.issues),
-        )
+        val issueOnlyFilter =
+            IssueSearchFiltersInput(
+                displayType = Optional.present(DisplayFilter.issues),
+            )
         var earliestClosedDate: Instant
         var cursor: String? = null
 
@@ -49,11 +52,14 @@ class ZenHubClient(
     }
 
     fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
-        val results = getSprintByState(
-            SprintFiltersInput(Optional.present(SprintStateInput(SprintState.OPEN)), Optional.absent()),
-            1,
-            SprintOrderInput(Optional.present(OrderDirection.ASC), Optional.present(SprintOrderField.END_AT))
-        )
+        val results =
+            getSprintByState(
+                SprintFiltersInput(
+                    Optional.present(SprintStateInput(SprintState.OPEN)), Optional.absent()),
+                1,
+                SprintOrderInput(
+                    Optional.present(OrderDirection.ASC),
+                    Optional.present(SprintOrderField.END_AT)))
         if (results.isNullOrEmpty()) {
             null
         } else {
@@ -62,11 +68,14 @@ class ZenHubClient(
     }
 
     fun getPreviousSprint(): GetSprintsByStateQuery.Node? = runBlocking {
-        val results = getSprintByState(
-            SprintFiltersInput(Optional.present(SprintStateInput(SprintState.CLOSED)), Optional.absent()),
-            1,
-            SprintOrderInput(Optional.present(OrderDirection.DESC), Optional.present(SprintOrderField.END_AT))
-        )
+        val results =
+            getSprintByState(
+                SprintFiltersInput(
+                    Optional.present(SprintStateInput(SprintState.CLOSED)), Optional.absent()),
+                1,
+                SprintOrderInput(
+                    Optional.present(OrderDirection.DESC),
+                    Optional.present(SprintOrderField.END_AT)))
         if (results.isNullOrEmpty()) {
             null
         } else {
@@ -74,7 +83,11 @@ class ZenHubClient(
         }
     }
 
-    fun issueByInfo(githubRepoId: Int, gitRepoId: String, issueNumber: Int): IssueByInfoQuery.IssueByInfo? = runBlocking {
+    fun issueByInfo(
+        githubRepoId: Int,
+        gitRepoId: String,
+        issueNumber: Int
+    ): IssueByInfoQuery.IssueByInfo? = runBlocking {
         val query = IssueByInfoQuery(githubRepoId, gitRepoId, issueNumber)
         apolloClient.query(query).toFlow().single().data?.issueByInfo
     }
@@ -99,13 +112,21 @@ class ZenHubClient(
 
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val query = GetIssuesByPipelineQuery(pipeline.id)
-        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes ?: emptyList()
+        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes
+            ?: emptyList()
     }
 
     fun getReleases(githubRepoId: Int): List<GetReleasesQuery.Node> = runBlocking {
         val query = GetReleasesQuery(githubRepoId)
-        apolloClient.query(query).toFlow().single().data?.repositoriesByGhId?.get(0)?.releases?.nodes
-            ?: emptyList()
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.repositoriesByGhId
+            ?.get(0)
+            ?.releases
+            ?.nodes ?: emptyList()
     }
 
     fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
@@ -113,14 +134,13 @@ class ZenHubClient(
         apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes ?: emptyList()
     }
 
-    /**
-     * Cannot move an issue to closed because closed is not a pipeline.
-     */
-    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? = runBlocking {
-        val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
-        val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
-        apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
-    }
+    /** Cannot move an issue to closed because closed is not a pipeline. */
+    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? =
+        runBlocking {
+            val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
+            val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
+            apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
+        }
 
     fun closeIssues(issueIds: List<String>): CloseIssuesMutation.CloseIssues? = runBlocking {
         val mutation = CloseIssuesMutation(issueIds)
@@ -136,12 +156,18 @@ class ZenHubClient(
         firstSprints: Int,
         orderSprintsBy: SprintOrderInput
     ): List<GetSprintsByStateQuery.Node>? = runBlocking {
-        val query = GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
+        val query =
+            GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
         apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
     }
 
-    private fun searchClosedIssues(filters: IssueSearchFiltersInput, after: String?): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
-        val query = SearchClosedIssuesQuery(zenhubWorkspaceId, filters, Optional.present(100), Optional.presentIfNotNull(after))
+    private fun searchClosedIssues(
+        filters: IssueSearchFiltersInput,
+        after: String?
+    ): SearchClosedIssuesQuery.SearchClosedIssues? = runBlocking {
+        val query =
+            SearchClosedIssuesQuery(
+                zenhubWorkspaceId, filters, Optional.present(100), Optional.presentIfNotNull(after))
         apolloClient.query(query).toFlow().single().data?.searchClosedIssues
     }
 
@@ -155,15 +181,17 @@ class ZenHubClient(
             return results
         }
 
-        val indexOfEarliestIssue = results.indexOfFirst { issue ->
-            Instant.parse(issue.closedAt.toString()).isBefore(startDate)
-        }
+        val indexOfEarliestIssue =
+            results.indexOfFirst { issue ->
+                Instant.parse(issue.closedAt.toString()).isBefore(startDate)
+            }
 
         var indexOfLatestIssue = -1
         if (Instant.parse(results[0].closedAt.toString()).isAfter(endDate)) {
-            indexOfLatestIssue = results.indexOfLast { issue ->
-                Instant.parse(issue.closedAt.toString()).isAfter(endDate)
-            }
+            indexOfLatestIssue =
+                results.indexOfLast { issue ->
+                    Instant.parse(issue.closedAt.toString()).isAfter(endDate)
+                }
         }
 
         return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
