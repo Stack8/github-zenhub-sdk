@@ -63,7 +63,10 @@ apollo {
 
 spotless {
     kotlin {
-        ktfmt()
+        ktfmt().configure {
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+        }
         targetExclude("build/**")
     }
 }
