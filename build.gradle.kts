@@ -48,7 +48,7 @@ apollo {
             endpointUrl.set("https://api.zenhub.com/public/graphql")
             schemaFile.set(file("src/main/graphql/zenhub/schema.json"))
         }
-        mapScalarToKotlinString("JSON")
+        mapScalar("JSON", "kotlin.String", "adapters.JsonAdapter")
     }
     service("github") {
         packageName.set("com.ziro.engineering.github.graphql.sdk")
