@@ -1,4 +1,4 @@
-query GetRelease($releaseId: ID!,  $endCursor: String) {
+query GetRelease($releaseId: ID!, $endCursor: String) {
     node(id: $releaseId) {
         ... on Release {
             id,

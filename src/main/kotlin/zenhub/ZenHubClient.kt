@@ -117,18 +117,55 @@ class ZenHubClient(
             ?: emptyList()
     }
 
-    fun getReleases(githubRepoId: Int): List<GetReleasesQuery.Node> = runBlocking {
-        val query = GetReleasesQuery(githubRepoId)
-        apolloClient
-            .query(query)
-            .toFlow()
-            .single()
-            .data
-            ?.repositoriesByGhId
-            ?.get(0)
-            ?.releases
-            ?.nodes ?: emptyList()
+    fun getReleases(githubRepoId: Int): Set<Release> {
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+        var queryResults: List<GetReleasesQuery.Node>?
+        var releaseIdToIssueIdsMap = mutableMapOf<String, MutableSet<String>>()
+
+        do {
+            hasNextPage = false
+            queryResults = getReleases(githubRepoId, endCursor)
+            queryResults?.forEach { release ->
+                val issuesCollectedSoFar =
+                    releaseIdToIssueIdsMap.getOrDefault(release.id, mutableSetOf())
+                issuesCollectedSoFar.addAll(release.issues.nodes.map { node -> node.id })
+                releaseIdToIssueIdsMap[release.id] = issuesCollectedSoFar
+
+                hasNextPage = hasNextPage || release.issues.pageInfo.hasNextPage
+                if (release.issues.pageInfo.hasNextPage) {
+                    endCursor = release.issues.pageInfo.endCursor
+                }
+            }
+        } while (hasNextPage)
+
+        return queryResults
+            ?.map { release ->
+                Release(
+                    release.id,
+                    release.title,
+                    release.state,
+                    LocalDate.parse(release.startOn.toString()),
+                    LocalDate.parse(release.endOn.toString()),
+                    releaseIdToIssueIdsMap[release.id]?.toSet() ?: emptySet(),
+                )
+            }
+            ?.toSet() ?: emptySet()
     }
+
+    private fun getReleases(githubRepoId: Int, endCursor: String?): List<GetReleasesQuery.Node>? =
+        runBlocking {
+            val query = GetReleasesQuery(githubRepoId, Optional.presentIfNotNull(endCursor))
+            apolloClient
+                .query(query)
+                .toFlow()
+                .single()
+                .data
+                ?.repositoriesByGhId
+                ?.get(0)
+                ?.releases
+                ?.nodes
+        }
 
     fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
         val query = GetSprintsQuery(workspaceId)
