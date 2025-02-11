@@ -1,11 +1,21 @@
-query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!], $endCursor: String) {
+query GetEpicsForRepositories($workspaceId: ID!, $repositoryGhIds: [Int!], $epicsEndCursor: String, $childIssuesEndCursor: String) {
     workspace(id: $workspaceId) {
-        epics(repositoryGhIds: $repositoryGhIds, first: 100, after: $endCursor) {
+        epics(repositoryGhIds: $repositoryGhIds, first: 100, after: $epicsEndCursor) {
             nodes {
                 id
                 issue {
                     id
                     number
+                }
+                childIssues(first: 100, after: $childIssuesEndCursor) {
+                    nodes {
+                        id
+                        number
+                    }
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
                 }
             }
             pageInfo {

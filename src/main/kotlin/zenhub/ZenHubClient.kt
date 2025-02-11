@@ -266,30 +266,69 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.createRelease
     }
 
-    fun getEpicsForRepository(githubRepoId: Int): List<GetEpicsForRepositoriesQuery.Node> {
-        val results = ArrayList<GetEpicsForRepositoriesQuery.Node>()
-        var endCursor: String? = null
-        var hasNextPage: Boolean
+    fun getEpicsForRepository(githubRepoId: Int): Set<EpicData> {
+        val results = mutableSetOf<EpicData>()
+        var epicsEndCursor: String? = null
+        var hasNextPageOfEpics: Boolean
 
         do {
-            val pageEpics = getEpicsForRepository(githubRepoId, endCursor)
-            results.addAll(pageEpics?.nodes ?: emptyList())
-            hasNextPage = pageEpics?.pageInfo?.hasNextPage ?: false
-            endCursor = pageEpics?.pageInfo?.endCursor
-        } while (hasNextPage)
+            val queryResults = getEpicsForRepository(githubRepoId, epicsEndCursor, null)
+            results.addAll(extractEpicData(githubRepoId, epicsEndCursor))
+
+            hasNextPageOfEpics = queryResults?.pageInfo?.hasNextPage ?: false
+            epicsEndCursor = queryResults?.pageInfo?.endCursor
+        } while (hasNextPageOfEpics)
 
         return results
     }
 
+    private fun extractEpicData(
+        githubRepoId: Int,
+        epicsEndCursor: String?,
+    ): Set<EpicData> {
+        val epicIdToChildIssueIds = mutableMapOf<String, MutableSet<String>>()
+        var hasNextPageOfChildIssues = false
+        var childIssuesEndCursor: String? = null
+        var queryResults: GetEpicsForRepositoriesQuery.Epics?
+
+        do {
+            queryResults = getEpicsForRepository(githubRepoId, epicsEndCursor, childIssuesEndCursor)
+            queryResults?.nodes?.forEach { epic ->
+                val childIssuesCollectedSoFar =
+                    epicIdToChildIssueIds.getOrDefault(epic.id, mutableSetOf())
+                childIssuesCollectedSoFar.addAll(epic.childIssues.nodes.map { node -> node.id })
+                epicIdToChildIssueIds[epic.id] = childIssuesCollectedSoFar
+
+                hasNextPageOfChildIssues =
+                    hasNextPageOfChildIssues || epic.childIssues.pageInfo.hasNextPage
+                if (epic.childIssues.pageInfo.hasNextPage) {
+                    childIssuesEndCursor = epic.childIssues.pageInfo.endCursor
+                }
+            }
+        } while (hasNextPageOfChildIssues)
+
+        return queryResults
+            ?.nodes
+            ?.map { epicNode ->
+                EpicData(
+                    epicNode.id,
+                    epicNode.issue.id,
+                    epicIdToChildIssueIds[epicNode.id]?.toSet() ?: emptySet())
+            }
+            ?.toSet() ?: emptySet()
+    }
+
     private fun getEpicsForRepository(
         githubRepoId: Int,
-        endCursor: String?
+        epicsEndCursor: String?,
+        childIssuesEndCursor: String?
     ): GetEpicsForRepositoriesQuery.Epics? = runBlocking {
         val query =
             GetEpicsForRepositoriesQuery(
                 zenhubWorkspaceId,
                 Optional.present(listOf(githubRepoId)),
-                Optional.presentIfNotNull(endCursor))
+                Optional.presentIfNotNull(epicsEndCursor),
+                Optional.presentIfNotNull(childIssuesEndCursor))
         apolloClient.query(query).toFlow().single().data?.workspace?.epics
     }
 
