@@ -1,0 +1,12 @@
+query GetPipelines($workspaceId: ID!) {
+    workspace(id: $workspaceId) {
+        # fetching the first page is sufficient as it is very unlikely we exceed 100 pipelines
+        # in the future
+        pipelinesConnection(first: 100) {
+            nodes {
+                id
+                name
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+query GetIssueEvents($repositoryGhId: Int!, $issueNumber: Int!, $endCursor: String) {
+    issueByInfo(repositoryGhId: $repositoryGhId, issueNumber: $issueNumber) {
+        timelineItems(first: 100, after: $endCursor) {
+            nodes {
+                type: key
+                id
+                data
+                createdAt
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+}

@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.ziro.engineering"
-version = "2.0.1"
+version = "3.0.0"
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -49,6 +49,7 @@ apollo {
             endpointUrl.set("https://api.zenhub.com/public/graphql")
             schemaFile.set(file("src/main/graphql/zenhub/schema.json"))
         }
+        mapScalar("JSON", "kotlin.String", "adapters.JsonAdapter")
     }
     service("github") {
         packageName.set("com.ziro.engineering.github.graphql.sdk")

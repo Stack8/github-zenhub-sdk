@@ -1,0 +1,2 @@
+schema: 'src/main/graphql/zenhub/schema.json'
+documents: '**/*.graphql'

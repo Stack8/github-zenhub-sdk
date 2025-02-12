@@ -24,8 +24,7 @@ query GetIssuesByPipeline($pipelineId: ID!) {
       }
       releases {
         nodes {
-          title
-          state
+          id
         }
       }
       htmlUrl

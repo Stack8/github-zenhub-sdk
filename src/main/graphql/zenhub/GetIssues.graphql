@@ -1,0 +1,44 @@
+query GetIssues($issueIds: [ID!]!) {
+    issues(ids: $issueIds) {
+        id
+        title
+        number
+        estimate {
+            value
+        }
+        labels(first: 100) {  # No need to get all pages as issues don't realistically have >100
+            totalCount
+            nodes {
+                name
+            }
+        }
+        sprints {
+            nodes {
+                id
+                name
+                startAt
+                endAt
+                state
+            }
+        }
+        releases {
+            nodes {
+                id
+            }
+        }
+        htmlUrl
+        closedAt
+        connectedPrs(first: 100) { # No need to get all pages as issues don't realistically have >100
+            nodes {
+                state
+                number
+                pullRequestObject {
+                    state
+                }
+                repository {
+                    name
+                }
+            }
+        }
+    }
+}

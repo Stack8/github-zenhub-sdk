@@ -1,0 +1,7 @@
+mutation RemoveIssuesFromReleases($removeIssuesFromReleasesInput: RemoveIssuesFromReleasesInput!) {
+    removeIssuesFromReleases(input: $removeIssuesFromReleasesInput) {
+        releases {
+            id
+        }
+    }
+}

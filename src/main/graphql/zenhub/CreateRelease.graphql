@@ -1,0 +1,10 @@
+mutation CreateRelease($createReleaseInput: CreateReleaseInput!) {
+    createRelease(input: $createReleaseInput) {
+        release {
+            id
+            title
+            startOn
+            endOn
+        }
+    }
+}
