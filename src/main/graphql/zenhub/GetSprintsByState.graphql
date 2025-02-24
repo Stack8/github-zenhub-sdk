@@ -1,8 +1,13 @@
-query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, $firstSprints: Int!, $orderSprintsBy: SprintOrderInput!) {
+query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, $firstSprints: Int!, $orderSprintsBy: SprintOrderInput!, $endCursor: String) {
   workspace(id: $workspaceId) {
     id
     displayName
-    sprints(first: $firstSprints, filters: $sprintFilters, orderBy: $orderSprintsBy) {
+    sprints(
+      first: $firstSprints
+      filters: $sprintFilters
+      orderBy: $orderSprintsBy
+      after: $endCursor
+    ) {
       nodes {
         id
         name
@@ -13,6 +18,10 @@ query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, 
             id
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

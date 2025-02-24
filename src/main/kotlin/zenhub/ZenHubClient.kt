@@ -57,11 +57,11 @@ class ZenHubClient(
             getSprintByState(
                 SprintFiltersInput(
                     Optional.present(SprintStateInput(SprintState.OPEN)), Optional.absent()),
-                1,
                 SprintOrderInput(
                     Optional.present(OrderDirection.ASC),
                     Optional.present(SprintOrderField.END_AT)))
-        if (results.isNullOrEmpty()) {
+
+        if (results.isEmpty()) {
             null
         } else {
             results[0]
@@ -73,11 +73,11 @@ class ZenHubClient(
             getSprintByState(
                 SprintFiltersInput(
                     Optional.present(SprintStateInput(SprintState.CLOSED)), Optional.absent()),
-                1,
                 SprintOrderInput(
                     Optional.present(OrderDirection.DESC),
                     Optional.present(SprintOrderField.END_AT)))
-        if (results.isNullOrEmpty()) {
+
+        if (results.isEmpty()) {
             null
         } else {
             results[0]
@@ -112,16 +112,40 @@ class ZenHubClient(
     }
 
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
-        val query = GetIssuesByPipelineQuery(pipeline.id)
-        apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline?.nodes
-            ?: emptyList()
+        val issues: ArrayList<GetIssuesByPipelineQuery.Node> = ArrayList()
+        var queryResult: GetIssuesByPipelineQuery.SearchIssuesByPipeline?
+        var hasNextPage: Boolean
+        var endCursor: String? = null
+
+        do {
+            queryResult = getIssuesByPipeline(pipeline, endCursor)
+
+            if (queryResult?.nodes != null) {
+                issues.addAll(queryResult.nodes)
+            }
+
+            hasNextPage = queryResult?.pageInfo?.hasNextPage ?: false
+            endCursor = queryResult?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        issues
+    }
+
+    private fun getIssuesByPipeline(
+        pipeline: Pipeline,
+        after: String?
+    ): GetIssuesByPipelineQuery.SearchIssuesByPipeline? = runBlocking {
+        runBlocking {
+            val query = GetIssuesByPipelineQuery(pipeline.id, Optional.presentIfNotNull(after))
+            apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline
+        }
     }
 
     fun getReleases(githubRepoId: Int): Set<Release> {
         var endCursor: String? = null
         var hasNextPage: Boolean
         var queryResults: List<GetReleasesQuery.Node>?
-        var releaseIdToIssueIdsMap = mutableMapOf<String, MutableSet<String>>()
+        val releaseIdToIssueIdsMap = mutableMapOf<String, MutableSet<String>>()
 
         do {
             hasNextPage = false
@@ -390,7 +414,7 @@ class ZenHubClient(
 
     fun getEpicById(epicId: String): EpicData? {
         var queryResult: GetEpicByIdQuery.OnEpic?
-        var childIssuesIds = mutableSetOf<String>()
+        val childIssuesIds = mutableSetOf<String>()
         var endCursor: String? = null
         var hasNextPage: Boolean
 
@@ -428,12 +452,40 @@ class ZenHubClient(
 
     private fun getSprintByState(
         sprintFilters: SprintFiltersInput,
-        firstSprints: Int,
         orderSprintsBy: SprintOrderInput
-    ): List<GetSprintsByStateQuery.Node>? = runBlocking {
+    ): List<GetSprintsByStateQuery.Node> {
+        val sprints: ArrayList<GetSprintsByStateQuery.Node> = ArrayList()
+        var queryResult: GetSprintsByStateQuery.Data?
+        var hasNextPage: Boolean
+        var endCursor: String? = null
+
+        do {
+            queryResult = getSprintByState(sprintFilters, orderSprintsBy, endCursor)
+
+            if (queryResult?.workspace?.sprints?.nodes != null) {
+                sprints.addAll(queryResult.workspace!!.sprints.nodes)
+            }
+
+            hasNextPage = queryResult?.workspace?.sprints?.pageInfo?.hasNextPage ?: false
+            endCursor = queryResult?.workspace?.sprints?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        return sprints
+    }
+
+    private fun getSprintByState(
+        sprintFilters: SprintFiltersInput,
+        orderSprintsBy: SprintOrderInput,
+        endCursor: String?
+    ): GetSprintsByStateQuery.Data? = runBlocking {
         val query =
-            GetSprintsByStateQuery(zenhubWorkspaceId, sprintFilters, firstSprints, orderSprintsBy)
-        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes
+            GetSprintsByStateQuery(
+                zenhubWorkspaceId,
+                sprintFilters,
+                100,
+                orderSprintsBy,
+                Optional.presentIfNotNull(endCursor))
+        apolloClient.query(query).toFlow().single().data
     }
 
     private fun searchClosedIssues(
