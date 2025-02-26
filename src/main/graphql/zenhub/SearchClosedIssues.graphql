@@ -5,6 +5,9 @@ query SearchClosedIssues($workspaceId: ID!, $filters: IssueSearchFiltersInput!, 
     first: $first
     after: $after
   ) {
+    nodes {
+      ...IssueFragment
+    }
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -12,56 +15,5 @@ query SearchClosedIssues($workspaceId: ID!, $filters: IssueSearchFiltersInput!, 
       endCursor
     }
     totalCount
-    nodes {
-      id
-      title
-      number
-      estimate {
-        value
-      }
-      labels(first: 100) {
-        totalCount
-        nodes {
-          name
-        }
-      }
-      sprints {
-        nodes {
-          id
-          name
-          startAt
-          endAt
-          state
-        }
-      }
-      releases {
-        nodes {
-          title
-          state
-        }
-      }
-      htmlUrl
-      closedAt
-      connectedPrs {
-        nodes {
-          state
-          number
-          pullRequestObject {
-            state
-          }
-          repository {
-            name
-          }
-        }
-      }
-      user {
-        login
-      }
-      assignees {
-        nodes {
-          login
-        }
-      }
-    }
   }
 }

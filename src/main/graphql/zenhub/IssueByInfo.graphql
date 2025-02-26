@@ -4,45 +4,6 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
     repositoryId: $repositoryId
     issueNumber: $issueNumber
   ) {
-    id
-    title
-    number
-    estimate {
-      value
-    }
-    labels(first: 100) {
-      totalCount
-      nodes {
-        name
-      }
-    }
-    sprints {
-      nodes {
-        id
-        name
-        startAt
-        endAt
-        state
-      }
-    }
-    releases {
-      nodes {
-        id
-      }
-    }
-    htmlUrl
-    closedAt
-    connectedPrs {
-      nodes {
-        state
-        number
-        pullRequestObject {
-          state
-        }
-        repository {
-          name
-        }
-      }
-    }
+    ...IssueFragment
   }
 }
