@@ -10,6 +10,7 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
     estimate {
       value
     }
+    # No need to get all labels as >100 is unrealistic
     labels(first: 100) {
       totalCount
       nodes {
@@ -25,6 +26,7 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
         state
       }
     }
+    # No need to get all releases as >100 is unrealistic
     releases {
       nodes {
         id
@@ -32,6 +34,7 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
     }
     htmlUrl
     closedAt
+    # No need to get all pull requests as >100 is unrealistic
     connectedPrs {
       nodes {
         state

@@ -1,5 +1,5 @@
-query GetIssuesByPipeline($pipelineId: ID!) {
-  searchIssuesByPipeline(pipelineId: $pipelineId, filters: {}) {
+query GetIssuesByPipeline($pipelineId: ID!, $endCursor: String) {
+  searchIssuesByPipeline(pipelineId: $pipelineId, after: $endCursor, filters: {}) {
     nodes {
       id
       title
@@ -7,6 +7,7 @@ query GetIssuesByPipeline($pipelineId: ID!) {
       estimate {
         value
       }
+      # No need to get all labels as >100 is unrealistic
       labels(first: 100) {
         totalCount
         nodes {
@@ -22,6 +23,7 @@ query GetIssuesByPipeline($pipelineId: ID!) {
           state
         }
       }
+      # No need to get all releases as >100 is unrealistic
       releases {
         nodes {
           id
@@ -29,6 +31,7 @@ query GetIssuesByPipeline($pipelineId: ID!) {
       }
       htmlUrl
       closedAt
+      # No need to get all pull requests as >100 is unrealistic
       connectedPrs {
         nodes {
           state
@@ -41,6 +44,10 @@ query GetIssuesByPipeline($pipelineId: ID!) {
           }
         }
       }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
     }
   }
 }

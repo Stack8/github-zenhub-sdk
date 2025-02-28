@@ -1,14 +1,24 @@
-query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, $firstSprints: Int!, $orderSprintsBy: SprintOrderInput!) {
+query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, $firstSprints: Int!, $orderSprintsBy: SprintOrderInput!, $endCursor: String) {
   workspace(id: $workspaceId) {
     id
     displayName
-    sprints(first: $firstSprints, filters: $sprintFilters, orderBy: $orderSprintsBy) {
+    sprints(
+      first: $firstSprints
+      filters: $sprintFilters
+      orderBy: $orderSprintsBy
+      after: $endCursor
+    ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         id
         name
         startAt
         endAt
-        issues {
+        # No need to get all issues as we rarely exceed 50 issues in a sprint
+        issues(first: 100) {
           nodes {
             id
           }
