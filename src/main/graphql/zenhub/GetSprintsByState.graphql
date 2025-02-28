@@ -8,20 +8,21 @@ query GetSprintsByState($workspaceId: ID!, $sprintFilters: SprintFiltersInput!, 
       orderBy: $orderSprintsBy
       after: $endCursor
     ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         id
         name
         startAt
         endAt
-        issues {
+        # No need to get all issues as we rarely exceed 50 issues in a sprint
+        issues(first: 100) {
           nodes {
             id
           }
         }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
       }
     }
   }

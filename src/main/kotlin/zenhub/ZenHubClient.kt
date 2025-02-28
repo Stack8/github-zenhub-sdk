@@ -192,8 +192,23 @@ class ZenHubClient(
         }
 
     fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
-        val query = GetSprintsQuery(workspaceId)
-        apolloClient.query(query).toFlow().single().data?.workspace?.sprints?.nodes ?: emptyList()
+        val sprints = ArrayList<GetSprintsQuery.Node>()
+        var queryResult: GetSprintsQuery.Sprints?
+        var hasNextPage = false
+        var endCursor: String? = null
+
+        do {
+            val query = GetSprintsQuery(workspaceId, Optional.present(endCursor))
+            queryResult = apolloClient.query(query).toFlow().single().data?.workspace?.sprints
+
+            if (queryResult != null) {
+                hasNextPage = queryResult.pageInfo.hasNextPage
+                endCursor = queryResult.pageInfo.endCursor
+                sprints.addAll(queryResult.nodes)
+            }
+        } while (hasNextPage)
+
+        sprints
     }
 
     /** Cannot move an issue to closed because closed is not a pipeline. */
