@@ -38,8 +38,12 @@ publishing {
         maven {
             url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
-                username = System.getenv("SONATYPE_USERNAME") as String
-                password = System.getenv("SONATYPE_PASSWORD") as String
+                try {
+                    username = System.getenv("SONATYPE_USERNAME") as String
+                    password = System.getenv("SONATYPE_PASSWORD") as String
+                } catch (e: NullPointerException) {
+                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
+                }
             }
         }
     }
