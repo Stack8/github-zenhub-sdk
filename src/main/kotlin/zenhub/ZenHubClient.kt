@@ -45,7 +45,7 @@ class ZenHubClient(
         do {
             val page = searchClosedIssues(issueOnlyFilter, cursor)
             page?.nodes?.let { results.addAll(it) }
-            earliestClosedDate = Instant.parse(results.last().closedAt.toString())
+            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
             cursor = page?.pageInfo?.endCursor
         } while (earliestClosedDate.isAfter(startTime))
 
@@ -525,14 +525,14 @@ class ZenHubClient(
 
         val indexOfEarliestIssue =
             results.indexOfFirst { issue ->
-                Instant.parse(issue.closedAt.toString()).isBefore(startDate)
+                Instant.parse(issue.issueFragment.closedAt.toString()).isBefore(startDate)
             }
 
         var indexOfLatestIssue = -1
-        if (Instant.parse(results[0].closedAt.toString()).isAfter(endDate)) {
+        if (Instant.parse(results[0].issueFragment.closedAt.toString()).isAfter(endDate)) {
             indexOfLatestIssue =
                 results.indexOfLast { issue ->
-                    Instant.parse(issue.closedAt.toString()).isAfter(endDate)
+                    Instant.parse(issue.issueFragment.closedAt.toString()).isAfter(endDate)
                 }
         }
 

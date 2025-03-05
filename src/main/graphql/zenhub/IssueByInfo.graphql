@@ -4,48 +4,6 @@ query IssueByInfo($repositoryGhId: Int!, $repositoryId: ID!, $issueNumber: Int!)
     repositoryId: $repositoryId
     issueNumber: $issueNumber
   ) {
-    id
-    title
-    number
-    estimate {
-      value
-    }
-    # No need to get all labels as >100 is unrealistic
-    labels(first: 100) {
-      totalCount
-      nodes {
-        name
-      }
-    }
-    sprints {
-      nodes {
-        id
-        name
-        startAt
-        endAt
-        state
-      }
-    }
-    # No need to get all releases as >100 is unrealistic
-    releases {
-      nodes {
-        id
-      }
-    }
-    htmlUrl
-    closedAt
-    # No need to get all pull requests as >100 is unrealistic
-    connectedPrs {
-      nodes {
-        state
-        number
-        pullRequestObject {
-          state
-        }
-        repository {
-          name
-        }
-      }
-    }
+    ...IssueFragment
   }
 }

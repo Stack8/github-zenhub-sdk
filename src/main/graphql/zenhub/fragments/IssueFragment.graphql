@@ -1,0 +1,51 @@
+fragment IssueFragment on Issue {
+    id
+    title
+    number
+    estimate {
+        value
+    }
+    # No need to get all pages as issues don't realistically have >100
+    labels(first: 100) {
+        totalCount
+        nodes {
+            name
+        }
+    }
+    # No need to get all sprints as >100 is unrealistic
+    sprints {
+        nodes {
+            id
+            name
+            startAt
+            endAt
+            state
+        }
+    }
+    # No need to get all releases as >100 is unrealistic
+    releases {
+        nodes {
+            id
+        }
+    }
+    htmlUrl
+    closedAt
+    # No need to get all pages as issues don't realistically have >100
+    connectedPrs(first: 100) {
+        nodes {
+            state
+            number
+            pullRequestObject {
+                state
+            }
+            repository {
+                name
+            }
+        }
+    }
+    pipelineIssue(workspaceId: "59c54eb49d9e774e473597f1") {
+        pipeline {
+            name
+        }
+    }
+}
