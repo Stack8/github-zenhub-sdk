@@ -1,12 +1,17 @@
-query GetSprints($workspaceId: ID!) {
+query GetSprints($workspaceId: ID!, $sprintsEndCursor: String) {
   workspace(id: $workspaceId) {
-    sprints {
+    sprints(after: $sprintsEndCursor) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         id
         name
         startAt
         endAt
-        issues {
+        # No need to get all issues as we rarely exceed 50 issues in a sprint
+        issues(first: 100) {
           nodes {
             id
           }

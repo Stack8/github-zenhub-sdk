@@ -1,7 +1,11 @@
-query GetIssuesByPipeline($pipelineId: ID!) {
-  searchIssuesByPipeline(pipelineId: $pipelineId, filters: {}) {
+query GetIssuesByPipeline($pipelineId: ID!, $endCursor: String) {
+  searchIssuesByPipeline(pipelineId: $pipelineId, after: $endCursor, filters: {}) {
     nodes {
       ...IssueFragment
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
     }
   }
 }

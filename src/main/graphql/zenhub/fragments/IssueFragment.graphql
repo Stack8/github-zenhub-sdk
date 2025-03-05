@@ -12,6 +12,7 @@ fragment IssueFragment on Issue {
             name
         }
     }
+    # No need to get all sprints as >100 is unrealistic
     sprints {
         nodes {
             id
@@ -21,6 +22,7 @@ fragment IssueFragment on Issue {
             state
         }
     }
+    # No need to get all releases as >100 is unrealistic
     releases {
         nodes {
             id
