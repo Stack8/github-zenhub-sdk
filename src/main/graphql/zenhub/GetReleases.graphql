@@ -1,19 +1,23 @@
-query GetReleases($githubRepoId: Int!, $endCursor: String) {
+query GetReleases($githubRepoId: Int!, $releasesEndCursor: String) {
   repositoriesByGhId(ghIds: [$githubRepoId]) {
-    releases {
+    releases(first: 100, after: $releasesEndCursor) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         id,
         title,
         state,
         startOn,
         endOn,
-        issues(first: 100, after: $endCursor) {
-          nodes {
-            id
-          }
+        issues(first: 100) {
           pageInfo {
             hasNextPage
             endCursor
+          }
+          nodes {
+            id
           }
         }
       }

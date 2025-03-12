@@ -141,30 +141,40 @@ class ZenHubClient(
         }
     }
 
-    fun getReleases(githubRepoId: Int): Set<Release> {
-        var endCursor: String? = null
-        var hasNextPage: Boolean
-        var queryResults: List<GetReleasesQuery.Node>?
+    fun getReleases(githubRepoId: Int, includeIssues: Boolean = true): Set<Release> = runBlocking {
+        val allReleases: ArrayList<GetReleasesQuery.Node> = ArrayList()
         val releaseIdToIssueIdsMap = mutableMapOf<String, MutableSet<String>>()
+        var releases: GetReleasesQuery.Releases?
+        var hasNextReleasePage = false
+        var releasesEndCursor: String? = null
 
         do {
-            hasNextPage = false
-            queryResults = getReleases(githubRepoId, endCursor)
-            queryResults?.forEach { release ->
-                val issuesCollectedSoFar =
-                    releaseIdToIssueIdsMap.getOrDefault(release.id, mutableSetOf())
-                issuesCollectedSoFar.addAll(release.issues.nodes.map { node -> node.id })
-                releaseIdToIssueIdsMap[release.id] = issuesCollectedSoFar
+            val releasesQuery =
+                GetReleasesQuery(githubRepoId, Optional.presentIfNotNull(releasesEndCursor))
 
-                hasNextPage = hasNextPage || release.issues.pageInfo.hasNextPage
-                if (release.issues.pageInfo.hasNextPage) {
-                    endCursor = release.issues.pageInfo.endCursor
-                }
+            releases =
+                apolloClient
+                    .query(releasesQuery)
+                    .toFlow()
+                    .single()
+                    .data
+                    ?.repositoriesByGhId
+                    ?.get(0)
+                    ?.releases
+
+            if (includeIssues) {
+                queryIssues(releases, releaseIdToIssueIdsMap)
             }
-        } while (hasNextPage)
 
-        return queryResults
-            ?.map { release ->
+            if (releases != null) {
+                hasNextReleasePage = releases.pageInfo.hasNextPage
+                releasesEndCursor = releases.pageInfo.endCursor
+                allReleases.addAll(releases.nodes)
+            }
+        } while (hasNextReleasePage)
+
+        allReleases
+            .map { release ->
                 Release(
                     release.id,
                     release.title,
@@ -174,22 +184,39 @@ class ZenHubClient(
                     releaseIdToIssueIdsMap[release.id]?.toSet() ?: emptySet(),
                 )
             }
-            ?.toSet() ?: emptySet()
+            .toSet()
     }
 
-    private fun getReleases(githubRepoId: Int, endCursor: String?): List<GetReleasesQuery.Node>? =
-        runBlocking {
-            val query = GetReleasesQuery(githubRepoId, Optional.presentIfNotNull(endCursor))
-            apolloClient
-                .query(query)
-                .toFlow()
-                .single()
-                .data
-                ?.repositoriesByGhId
-                ?.get(0)
-                ?.releases
-                ?.nodes
+    private fun queryIssues(
+        releases: GetReleasesQuery.Releases?,
+        releaseIdToIssueIdsMap: MutableMap<String, MutableSet<String>>
+    ) = runBlocking {
+        releases?.nodes?.forEach { release ->
+            val issuesCollectedSoFar = release.issues.nodes.map { issue -> issue.id }.toMutableSet()
+            var hasNextIssuePage = release.issues.pageInfo.hasNextPage
+            var issuesEndCursor = release.issues.pageInfo.endCursor
+            var issues: GetReleaseQuery.Issues?
+
+            while (hasNextIssuePage) {
+                val releaseQuery =
+                    GetReleaseQuery(release.id, Optional.presentIfNotNull(issuesEndCursor))
+
+                issues =
+                    apolloClient.query(releaseQuery).toFlow().single().data?.node?.onRelease?.issues
+
+                if (issues?.nodes != null) {
+                    issuesCollectedSoFar.addAll(issues.nodes.map { issue -> issue.id })
+                }
+
+                if (issues != null) {
+                    hasNextIssuePage = issues.pageInfo.hasNextPage
+                    issuesEndCursor = issues.pageInfo.endCursor
+                }
+            }
+
+            releaseIdToIssueIdsMap[release.id] = issuesCollectedSoFar
         }
+    }
 
     fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
         val sprints = ArrayList<GetSprintsQuery.Node>()
