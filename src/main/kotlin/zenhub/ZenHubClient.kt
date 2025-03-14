@@ -18,6 +18,8 @@ const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvM
 private const val DEFAULT_WORKSPACE_ID = "59c54eb49d9e774e473597f1"
 private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
+private const val DEFAULT_PAGE_SIZE = 100
+
 class ZenHubClient(
     private val githubRepositoryId: Int = DEFAULT_GITHUB_REPOSITORY_ID,
     private val gitRepositoryId: String = DEFAULT_GIT_REPOSITORY_ID,
@@ -484,8 +486,19 @@ class ZenHubClient(
     }
 
     fun getIssuesByIds(ids: Set<String>): Set<GetIssuesQuery.Issue> = runBlocking {
-        val query = GetIssuesQuery(ids.toList())
-        apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
+        val issues = mutableSetOf<GetIssuesQuery.Issue>()
+        val numPages = ids.size / DEFAULT_PAGE_SIZE
+        val idsList = ids.toList()
+
+        for (i in 0..numPages) {
+            val query =
+                GetIssuesQuery(idsList.subList(i * DEFAULT_PAGE_SIZE, (i + 1) * DEFAULT_PAGE_SIZE))
+            val issuesInPage =
+                apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
+            issues.addAll(issuesInPage)
+        }
+
+        issues
     }
 
     override fun close() {
