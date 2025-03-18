@@ -456,28 +456,34 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
     }
 
-    fun getEpicById(epicId: String): EpicData? {
-        var queryResult: GetEpicByIdQuery.OnEpic?
-        val childIssuesIds = mutableSetOf<String>()
-        var endCursor: String? = null
-        var hasNextPage: Boolean
+    fun getEpicsByIds(epicIds: List<String>): List<EpicData> = runBlocking {
+        val epics = mutableListOf<EpicData>()
+        val numPages = epicIds.size / DEFAULT_PAGE_SIZE
 
-        do {
-            queryResult = getEpicById(epicId, endCursor)
-            val pageChildIssuesIds = queryResult?.childIssues?.nodes?.map { it.id } ?: emptySet()
-            childIssuesIds.addAll(pageChildIssuesIds)
-            hasNextPage = queryResult?.childIssues?.pageInfo?.hasNextPage ?: false
-            endCursor = queryResult?.childIssues?.pageInfo?.endCursor
-        } while (hasNextPage)
+        for (i in 0..numPages) {
+            val query =
+                GetEpicsByIdsQuery(
+                    epicIds
+                        .stream()
+                        .skip(i * DEFAULT_PAGE_SIZE.toLong())
+                        .limit(DEFAULT_PAGE_SIZE.toLong())
+                        .toList())
 
-        return queryResult?.let { EpicData(queryResult.id, queryResult.issue.id, childIssuesIds) }
-    }
+            val epicsInPage =
+                apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { it?.onEpic }
+                    ?: emptyList()
 
-    private fun getEpicById(epicId: String, endCursor: String?): GetEpicByIdQuery.OnEpic? =
-        runBlocking {
-            val query = GetEpicByIdQuery(epicId, Optional.presentIfNotNull(endCursor))
-            apolloClient.query(query).toFlow().single().data?.node?.onEpic
+            epics.addAll(
+                epicsInPage.map {
+                    EpicData(
+                        it.id,
+                        it.issue.id,
+                        it.childIssues.nodes.map { childIssue -> childIssue.id }.toSet())
+                })
         }
+
+        epics
+    }
 
     fun getPipelines(): List<GetPipelinesQuery.Node> = runBlocking {
         val query = GetPipelinesQuery(zenhubWorkspaceId)
@@ -492,7 +498,13 @@ class ZenHubClient(
 
         for (i in 0..numPages) {
             val query =
-                GetIssuesQuery(idsList.subList(i * DEFAULT_PAGE_SIZE, (i + 1) * DEFAULT_PAGE_SIZE))
+                GetIssuesQuery(
+                    idsList
+                        .stream()
+                        .skip(i * DEFAULT_PAGE_SIZE.toLong())
+                        .limit(DEFAULT_PAGE_SIZE.toLong())
+                        .toList())
+
             val issuesInPage =
                 apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
             issues.addAll(issuesInPage)
