@@ -469,9 +469,13 @@ class ZenHubClient(
                         .limit(DEFAULT_PAGE_SIZE.toLong())
                         .toList())
 
-            val epicsInPage =
-                apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { it?.onEpic }
-                    ?: emptyList()
+            val queryResult = apolloClient.query(query).toFlow().single()
+
+            if (queryResult.hasErrors()) {
+                handleQueryErrors(queryResult.errors!![0], epicIds)
+            }
+
+            val epicsInPage = queryResult.data?.nodes?.mapNotNull { it?.onEpic } ?: emptyList()
 
             epics.addAll(
                 epicsInPage.map {
@@ -589,5 +593,25 @@ class ZenHubClient(
         }
 
         return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
+    }
+
+    private fun handleQueryErrors(
+        error: com.apollographql.apollo3.api.Error,
+        epicIds: List<String>
+    ) {
+        when (error.message) {
+            "Invalid global id: Make sure id is in Base64 format" -> {
+                throw IllegalArgumentException(error.message)
+            }
+
+            "Resource not found" -> {
+                val missingEpicIndex =
+                    (error.path?.get(1) as? Int)
+                        ?: throw IllegalArgumentException("Value cannot be converted to Int")
+
+                throw IllegalArgumentException(
+                    "Failed to retrieve epic with ID: ${epicIds[missingEpicIndex]}")
+            }
+        }
     }
 }
