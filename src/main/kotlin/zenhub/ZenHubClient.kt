@@ -18,6 +18,8 @@ const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvM
 private const val DEFAULT_WORKSPACE_ID = "59c54eb49d9e774e473597f1"
 private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
+private const val DEFAULT_PAGE_SIZE = 100
+
 class ZenHubClient(
     private val githubRepositoryId: Int = DEFAULT_GITHUB_REPOSITORY_ID,
     private val gitRepositoryId: String = DEFAULT_GIT_REPOSITORY_ID,
@@ -141,30 +143,40 @@ class ZenHubClient(
         }
     }
 
-    fun getReleases(githubRepoId: Int): Set<Release> {
-        var endCursor: String? = null
-        var hasNextPage: Boolean
-        var queryResults: List<GetReleasesQuery.Node>?
+    fun getReleases(githubRepoId: Int, includeIssues: Boolean = true): Set<Release> = runBlocking {
+        val allReleases: ArrayList<GetReleasesQuery.Node> = ArrayList()
         val releaseIdToIssueIdsMap = mutableMapOf<String, MutableSet<String>>()
+        var releases: GetReleasesQuery.Releases?
+        var hasNextReleasePage = false
+        var releasesEndCursor: String? = null
 
         do {
-            hasNextPage = false
-            queryResults = getReleases(githubRepoId, endCursor)
-            queryResults?.forEach { release ->
-                val issuesCollectedSoFar =
-                    releaseIdToIssueIdsMap.getOrDefault(release.id, mutableSetOf())
-                issuesCollectedSoFar.addAll(release.issues.nodes.map { node -> node.id })
-                releaseIdToIssueIdsMap[release.id] = issuesCollectedSoFar
+            val releasesQuery =
+                GetReleasesQuery(githubRepoId, Optional.presentIfNotNull(releasesEndCursor))
 
-                hasNextPage = hasNextPage || release.issues.pageInfo.hasNextPage
-                if (release.issues.pageInfo.hasNextPage) {
-                    endCursor = release.issues.pageInfo.endCursor
-                }
+            releases =
+                apolloClient
+                    .query(releasesQuery)
+                    .toFlow()
+                    .single()
+                    .data
+                    ?.repositoriesByGhId
+                    ?.get(0)
+                    ?.releases
+
+            if (includeIssues) {
+                queryIssues(releases, releaseIdToIssueIdsMap)
             }
-        } while (hasNextPage)
 
-        return queryResults
-            ?.map { release ->
+            if (releases != null) {
+                hasNextReleasePage = releases.pageInfo.hasNextPage
+                releasesEndCursor = releases.pageInfo.endCursor
+                allReleases.addAll(releases.nodes)
+            }
+        } while (hasNextReleasePage)
+
+        allReleases
+            .map { release ->
                 Release(
                     release.id,
                     release.title,
@@ -174,22 +186,39 @@ class ZenHubClient(
                     releaseIdToIssueIdsMap[release.id]?.toSet() ?: emptySet(),
                 )
             }
-            ?.toSet() ?: emptySet()
+            .toSet()
     }
 
-    private fun getReleases(githubRepoId: Int, endCursor: String?): List<GetReleasesQuery.Node>? =
-        runBlocking {
-            val query = GetReleasesQuery(githubRepoId, Optional.presentIfNotNull(endCursor))
-            apolloClient
-                .query(query)
-                .toFlow()
-                .single()
-                .data
-                ?.repositoriesByGhId
-                ?.get(0)
-                ?.releases
-                ?.nodes
+    private fun queryIssues(
+        releases: GetReleasesQuery.Releases?,
+        releaseIdToIssueIdsMap: MutableMap<String, MutableSet<String>>
+    ) = runBlocking {
+        releases?.nodes?.forEach { release ->
+            val issuesCollectedSoFar = release.issues.nodes.map { issue -> issue.id }.toMutableSet()
+            var hasNextIssuePage = release.issues.pageInfo.hasNextPage
+            var issuesEndCursor = release.issues.pageInfo.endCursor
+            var issues: GetReleaseQuery.Issues?
+
+            while (hasNextIssuePage) {
+                val releaseQuery =
+                    GetReleaseQuery(release.id, Optional.presentIfNotNull(issuesEndCursor))
+
+                issues =
+                    apolloClient.query(releaseQuery).toFlow().single().data?.node?.onRelease?.issues
+
+                if (issues?.nodes != null) {
+                    issuesCollectedSoFar.addAll(issues.nodes.map { issue -> issue.id })
+                }
+
+                if (issues != null) {
+                    hasNextIssuePage = issues.pageInfo.hasNextPage
+                    issuesEndCursor = issues.pageInfo.endCursor
+                }
+            }
+
+            releaseIdToIssueIdsMap[release.id] = issuesCollectedSoFar
         }
+    }
 
     fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
         val sprints = ArrayList<GetSprintsQuery.Node>()
@@ -427,28 +456,38 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.setMilestoneStartDate?.milestone
     }
 
-    fun getEpicById(epicId: String): EpicData? {
-        var queryResult: GetEpicByIdQuery.OnEpic?
-        val childIssuesIds = mutableSetOf<String>()
-        var endCursor: String? = null
-        var hasNextPage: Boolean
+    fun getEpicsByIds(epicIds: List<String>): List<EpicData> = runBlocking {
+        val epics = mutableListOf<EpicData>()
+        val numPages = epicIds.size / DEFAULT_PAGE_SIZE
 
-        do {
-            queryResult = getEpicById(epicId, endCursor)
-            val pageChildIssuesIds = queryResult?.childIssues?.nodes?.map { it.id } ?: emptySet()
-            childIssuesIds.addAll(pageChildIssuesIds)
-            hasNextPage = queryResult?.childIssues?.pageInfo?.hasNextPage ?: false
-            endCursor = queryResult?.childIssues?.pageInfo?.endCursor
-        } while (hasNextPage)
+        for (i in 0..numPages) {
+            val query =
+                GetEpicsByIdsQuery(
+                    epicIds
+                        .stream()
+                        .skip(i * DEFAULT_PAGE_SIZE.toLong())
+                        .limit(DEFAULT_PAGE_SIZE.toLong())
+                        .toList())
 
-        return queryResult?.let { EpicData(queryResult.id, queryResult.issue.id, childIssuesIds) }
-    }
+            val queryResult = apolloClient.query(query).toFlow().single()
 
-    private fun getEpicById(epicId: String, endCursor: String?): GetEpicByIdQuery.OnEpic? =
-        runBlocking {
-            val query = GetEpicByIdQuery(epicId, Optional.presentIfNotNull(endCursor))
-            apolloClient.query(query).toFlow().single().data?.node?.onEpic
+            if (queryResult.hasErrors()) {
+                handleQueryErrors(queryResult.errors!![0], epicIds)
+            }
+
+            val epicsInPage = queryResult.data?.nodes?.mapNotNull { it?.onEpic } ?: emptyList()
+
+            epics.addAll(
+                epicsInPage.map {
+                    EpicData(
+                        it.id,
+                        it.issue.id,
+                        it.childIssues.nodes.map { childIssue -> childIssue.id }.toSet())
+                })
         }
+
+        epics
+    }
 
     fun getPipelines(): List<GetPipelinesQuery.Node> = runBlocking {
         val query = GetPipelinesQuery(zenhubWorkspaceId)
@@ -457,8 +496,25 @@ class ZenHubClient(
     }
 
     fun getIssuesByIds(ids: Set<String>): Set<GetIssuesQuery.Issue> = runBlocking {
-        val query = GetIssuesQuery(ids.toList())
-        apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
+        val issues = mutableSetOf<GetIssuesQuery.Issue>()
+        val numPages = ids.size / DEFAULT_PAGE_SIZE
+        val idsList = ids.toList()
+
+        for (i in 0..numPages) {
+            val query =
+                GetIssuesQuery(
+                    idsList
+                        .stream()
+                        .skip(i * DEFAULT_PAGE_SIZE.toLong())
+                        .limit(DEFAULT_PAGE_SIZE.toLong())
+                        .toList())
+
+            val issuesInPage =
+                apolloClient.query(query).toFlow().single().data?.issues?.toSet() ?: emptySet()
+            issues.addAll(issuesInPage)
+        }
+
+        issues
     }
 
     override fun close() {
@@ -537,5 +593,25 @@ class ZenHubClient(
         }
 
         return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
+    }
+
+    private fun handleQueryErrors(
+        error: com.apollographql.apollo3.api.Error,
+        epicIds: List<String>
+    ) {
+        when (error.message) {
+            "Invalid global id: Make sure id is in Base64 format" -> {
+                throw IllegalArgumentException(error.message)
+            }
+
+            "Resource not found" -> {
+                val missingEpicIndex =
+                    (error.path?.get(1) as? Int)
+                        ?: throw IllegalArgumentException("Value cannot be converted to Int")
+
+                throw IllegalArgumentException(
+                    "Failed to retrieve epic with ID: ${epicIds[missingEpicIndex]}")
+            }
+        }
     }
 }
