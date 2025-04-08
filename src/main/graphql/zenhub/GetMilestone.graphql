@@ -1,7 +1,0 @@
-query GetMilestone($repositoryGhId: Int!, $milestoneNumber: Int!) {
-    milestoneByRepoGhIdAndNumber(milestoneNumber: $milestoneNumber, repositoryGhId: $repositoryGhId) {
-        id
-        number
-        startDate
-    }
-}
