@@ -2,6 +2,11 @@ fragment IssueFragment on Issue {
     id
     title
     number
+    assignees {
+        nodes {
+            login
+        }
+    }
     estimate {
         value
     }
