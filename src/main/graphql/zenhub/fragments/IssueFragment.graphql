@@ -38,13 +38,19 @@ fragment IssueFragment on Issue {
     # No need to get all pages as issues don't realistically have >100
     connectedPrs(first: 100) {
         nodes {
-            state
             number
+            state
+            htmlUrl
             pullRequestObject {
                 state
             }
             repository {
                 name
+            }
+            assignees {
+                nodes {
+                    login
+                }
             }
         }
     }
