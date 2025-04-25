@@ -115,32 +115,24 @@ class ZenHubClient(
 
     fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val issues: ArrayList<GetIssuesByPipelineQuery.Node> = ArrayList()
-        var queryResult: GetIssuesByPipelineQuery.SearchIssuesByPipeline?
         var hasNextPage: Boolean
         var endCursor: String? = null
 
         do {
-            queryResult = getIssuesByPipeline(pipeline, endCursor)
+            val issuesQuery =
+                GetIssuesByPipelineQuery(pipeline.id, Optional.presentIfNotNull(endCursor))
+            val issuesInPage =
+                apolloClient.query(issuesQuery).toFlow().single().data?.searchIssuesByPipeline
 
-            if (queryResult?.nodes != null) {
-                issues.addAll(queryResult.nodes)
+            if (issuesInPage?.nodes != null) {
+                issues.addAll(issuesInPage.nodes)
             }
 
-            hasNextPage = queryResult?.pageInfo?.hasNextPage ?: false
-            endCursor = queryResult?.pageInfo?.endCursor
+            hasNextPage = issuesInPage?.pageInfo?.hasNextPage ?: false
+            endCursor = issuesInPage?.pageInfo?.endCursor
         } while (hasNextPage)
 
         issues
-    }
-
-    private fun getIssuesByPipeline(
-        pipeline: Pipeline,
-        after: String?
-    ): GetIssuesByPipelineQuery.SearchIssuesByPipeline? = runBlocking {
-        runBlocking {
-            val query = GetIssuesByPipelineQuery(pipeline.id, Optional.presentIfNotNull(after))
-            apolloClient.query(query).toFlow().single().data?.searchIssuesByPipeline
-        }
     }
 
     fun getReleases(githubRepoId: Int, includeIssues: Boolean = true): Set<Release> = runBlocking {
