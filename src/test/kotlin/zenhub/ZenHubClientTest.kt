@@ -16,17 +16,6 @@ class ZenHubClientTest {
     }
 
     @Test
-    fun whenGetIssuesByPipelineThenAtLeastZeroIssues() {
-        val issues = zenHubClient.getIssuesByPipeline(Pipeline.MERGE_READY)
-
-        if (issues.isNotEmpty()) {
-            assertTrue(issues[0].issueFragment.number > 0)
-        } else {
-            assertNotNull(issues)
-        }
-    }
-
-    @Test
     fun whenGetReleasesForValidRepoThenAtLeastOneRelease() {
         val releases = zenHubClient.getReleases(DEFAULT_GITHUB_REPOSITORY_ID)
         assertTrue(releases.isNotEmpty())

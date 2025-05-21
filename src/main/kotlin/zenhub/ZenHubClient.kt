@@ -113,14 +113,14 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromSprints
     }
 
-    fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
+    fun getIssuesByPipeline(pipelineId: String): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val issues: ArrayList<GetIssuesByPipelineQuery.Node> = ArrayList()
         var hasNextPage: Boolean
         var endCursor: String? = null
 
         do {
             val issuesQuery =
-                GetIssuesByPipelineQuery(pipeline.id, Optional.presentIfNotNull(endCursor))
+                GetIssuesByPipelineQuery(pipelineId, Optional.presentIfNotNull(endCursor))
             val issuesInPage =
                 apolloClient.query(issuesQuery).toFlow().single().data?.searchIssuesByPipeline
 
@@ -233,9 +233,9 @@ class ZenHubClient(
     }
 
     /** Cannot move an issue to closed because closed is not a pipeline. */
-    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? =
+    fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? =
         runBlocking {
-            val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
+            val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
             val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
             apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
         }
