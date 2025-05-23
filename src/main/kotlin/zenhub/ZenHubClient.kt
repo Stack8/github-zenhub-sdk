@@ -236,10 +236,11 @@ class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID)
             apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
         }
 
-    fun setEstimate(issueId: String, value: Double?): SetEstimateMutation.SetEstimate? =
+    fun setEstimate(issueId: String, value: Integer?): SetEstimateMutation.SetEstimate? =
         runBlocking {
             val input =
-                SetEstimateInput(Optional.absent(), Optional.presentIfNotNull(value), issueId)
+                SetEstimateInput(
+                    Optional.absent(), Optional.presentIfNotNull(value?.toDouble()), issueId)
             val mutation = SetEstimateMutation(input)
             apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
         }
