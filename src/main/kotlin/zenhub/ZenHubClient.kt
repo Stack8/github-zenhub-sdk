@@ -20,11 +20,7 @@ private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
 private const val DEFAULT_PAGE_SIZE = 100
 
-class ZenHubClient(
-    private val githubRepositoryId: Int = DEFAULT_GITHUB_REPOSITORY_ID,
-    private val gitRepositoryId: String = DEFAULT_GIT_REPOSITORY_ID,
-    private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID
-) : AutoCloseable {
+class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoCloseable {
 
     private val apolloClient: ApolloClient =
         ApolloClient.Builder()
@@ -488,6 +484,18 @@ class ZenHubClient(
         }
 
         issues
+    }
+
+    fun createIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
+        val input = CreateIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
+        val mutation = CreateIssuePrConnectionMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun deleteIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
+        val input = DeleteIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
+        val mutation = DeleteIssuePrConnectionMutation(input)
+        apolloClient.mutation(mutation).execute()
     }
 
     override fun close() {
