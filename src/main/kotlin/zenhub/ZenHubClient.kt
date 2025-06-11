@@ -20,11 +20,7 @@ private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
 private const val DEFAULT_PAGE_SIZE = 100
 
-class ZenHubClient(
-    private val githubRepositoryId: Int = DEFAULT_GITHUB_REPOSITORY_ID,
-    private val gitRepositoryId: String = DEFAULT_GIT_REPOSITORY_ID,
-    private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID
-) : AutoCloseable {
+class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoCloseable {
 
     private val apolloClient: ApolloClient =
         ApolloClient.Builder()
@@ -113,14 +109,14 @@ class ZenHubClient(
         apolloClient.mutation(mutation).toFlow().single().data?.removeIssuesFromSprints
     }
 
-    fun getIssuesByPipeline(pipeline: Pipeline): List<GetIssuesByPipelineQuery.Node> = runBlocking {
+    fun getIssuesByPipeline(pipelineId: String): List<GetIssuesByPipelineQuery.Node> = runBlocking {
         val issues: ArrayList<GetIssuesByPipelineQuery.Node> = ArrayList()
         var hasNextPage: Boolean
         var endCursor: String? = null
 
         do {
             val issuesQuery =
-                GetIssuesByPipelineQuery(pipeline.id, Optional.presentIfNotNull(endCursor))
+                GetIssuesByPipelineQuery(pipelineId, Optional.presentIfNotNull(endCursor))
             val issuesInPage =
                 apolloClient.query(issuesQuery).toFlow().single().data?.searchIssuesByPipeline
 
@@ -233,17 +229,18 @@ class ZenHubClient(
     }
 
     /** Cannot move an issue to closed because closed is not a pipeline. */
-    fun moveIssueToPipeline(issueId: String, pipeline: Pipeline): MoveIssueMutation.MoveIssue? =
+    fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? =
         runBlocking {
-            val input = MoveIssueInput(Optional.absent(), pipeline.id, issueId, Optional.present(0))
+            val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
             val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
             apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
         }
 
-    fun setEstimate(issueId: String, value: Double?): SetEstimateMutation.SetEstimate? =
+    fun setEstimate(issueId: String, value: Integer?): SetEstimateMutation.SetEstimate? =
         runBlocking {
             val input =
-                SetEstimateInput(Optional.absent(), Optional.presentIfNotNull(value), issueId)
+                SetEstimateInput(
+                    Optional.absent(), Optional.presentIfNotNull(value?.toDouble()), issueId)
             val mutation = SetEstimateMutation(input)
             apolloClient.mutation(mutation).toFlow().single().data?.setEstimate
         }
@@ -488,6 +485,18 @@ class ZenHubClient(
         }
 
         issues
+    }
+
+    fun createIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
+        val input = CreateIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
+        val mutation = CreateIssuePrConnectionMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun deleteIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
+        val input = DeleteIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
+        val mutation = DeleteIssuePrConnectionMutation(input)
+        apolloClient.mutation(mutation).execute()
     }
 
     override fun close() {

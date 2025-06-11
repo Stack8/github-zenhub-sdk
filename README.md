@@ -5,7 +5,7 @@ This library provides a convenient interface for interacting with GitHub and Zen
 # Build
 
 ```bash
-./gradlew clean build
+./gradlew build
 ```
 
 # Versioning

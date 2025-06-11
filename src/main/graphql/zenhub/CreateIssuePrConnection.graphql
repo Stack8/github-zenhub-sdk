@@ -1,0 +1,5 @@
+mutation CreateIssuePrConnection($input: CreateIssuePrConnectionInput!) {
+    createIssuePrConnection(input: $input) {
+        clientMutationId
+    }
+}
