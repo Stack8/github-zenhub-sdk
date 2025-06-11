@@ -33,7 +33,7 @@ class GitHubClient : AutoCloseable {
         apolloClient.query(query).toFlow().single().data?.repository
     }
 
-    fun getIssue(
+    fun getParentIssue(
         repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
         repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
         issueNumber: Int
