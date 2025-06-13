@@ -285,7 +285,7 @@ class ZenHubClient(
             apolloClient.query(query).toFlow().single().data?.node?.onRelease
         }
 
-    fun getReleaseByName(name: String): Release? = runBlocking {
+    fun getReleaseByTitle(title: String): Release? = runBlocking {
         val releases: ArrayList<GetMinimalReleasesQuery.Node> = ArrayList()
         var endCursor: String? = null
         var hasNextPage: Boolean
@@ -312,12 +312,12 @@ class ZenHubClient(
         } while (hasNextPage)
 
         for (release in releases) {
-            if (release.title == name) {
+            if (release.title == title) {
                 return@runBlocking getRelease(release.id)
             }
         }
 
-        throw IllegalArgumentException("Release with name $name not found")
+        throw IllegalArgumentException("Release with title $title not found")
     }
 
     fun addIssuesToRelease(
