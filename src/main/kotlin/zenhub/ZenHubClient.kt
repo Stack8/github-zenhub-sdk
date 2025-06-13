@@ -285,6 +285,41 @@ class ZenHubClient(
             apolloClient.query(query).toFlow().single().data?.node?.onRelease
         }
 
+    fun getReleaseByTitle(title: String): Release? = runBlocking {
+        val releases: ArrayList<GetMinimalReleasesQuery.Node> = ArrayList()
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val releasesQuery =
+                GetMinimalReleasesQuery(githubRepositoryId, Optional.presentIfNotNull(endCursor))
+            val releasesInPage =
+                apolloClient
+                    .query(releasesQuery)
+                    .toFlow()
+                    .single()
+                    .data
+                    ?.repositoriesByGhId
+                    ?.get(0)
+                    ?.releases
+
+            if (releasesInPage?.nodes != null) {
+                releases.addAll(releasesInPage.nodes)
+            }
+
+            hasNextPage = releasesInPage?.pageInfo?.hasNextPage ?: false
+            endCursor = releasesInPage?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        for (release in releases) {
+            if (release.title == title) {
+                return@runBlocking getRelease(release.id)
+            }
+        }
+
+        throw IllegalArgumentException("Release with title $title not found")
+    }
+
     fun addIssuesToRelease(
         issueIds: Set<String>,
         releaseId: String
