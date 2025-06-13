@@ -1,0 +1,14 @@
+query GetMinimalReleases($githubRepoId: Int!, $releasesEndCursor: String) {
+    repositoriesByGhId(ghIds: [$githubRepoId]) {
+        releases(first: 100, after: $releasesEndCursor) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                id,
+                title
+            }
+        }
+    }
+}
