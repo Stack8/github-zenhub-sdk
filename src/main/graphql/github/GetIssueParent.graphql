@@ -1,6 +1,16 @@
-query GetIssueParent($owner: String!, $repository: String!, $number: Int!) {
+query GetIssue($owner: String!, $repository: String!, $number: Int!) {
   repository(owner: $owner, name: $repository) {
     issue(number: $number) {
+      id
+      title
+      labels(first: 100) {
+        nodes {
+          color
+          name
+          id
+        }
+      }
+      body
       parent {
         title
         number
