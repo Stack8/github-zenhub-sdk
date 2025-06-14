@@ -2,6 +2,10 @@ query GetIssue($owner: String!, $repository: String!, $number: Int!) {
   repository(owner: $owner, name: $repository) {
     issue(number: $number) {
       id
+      issueType {
+        name,
+        description
+      }
       title
       labels(first: 100) {
         nodes {
