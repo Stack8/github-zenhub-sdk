@@ -1,0 +1,17 @@
+query GetIssuesByFilter($owner: String!, $repository: String!, $filter: IssueFilters!, $after: String) {
+    repository(owner: $owner, name: $repository) {
+        issues(first: 100, after: $after, filterBy: $filter) {
+            edges {
+                node {
+                    title
+                    id
+                    number
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+        }
+    }
+}
