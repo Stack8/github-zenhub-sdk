@@ -6,6 +6,12 @@ query GetIssuesByFilter($owner: String!, $repository: String!, $filter: IssueFil
                     title
                     id
                     number
+                    subIssues(first: 100) {
+                        nodes {
+                            id
+                            title
+                        }
+                    }
                 }
             }
             pageInfo {
