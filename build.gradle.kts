@@ -1,4 +1,4 @@
-var currentVersion = "4.8.0"
+var currentVersion = "4.9.0"
 
 if (project.hasProperty("snapshot")) {
     currentVersion = "${currentVersion}-SNAPSHOT"
