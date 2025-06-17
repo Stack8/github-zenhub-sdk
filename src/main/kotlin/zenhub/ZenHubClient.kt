@@ -289,7 +289,9 @@ class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID)
 
         do {
             val releasesQuery =
-                GetMinimalReleasesQuery(githubRepositoryId, Optional.presentIfNotNull(endCursor))
+                GetMinimalReleasesQuery(
+                    DEFAULT_GITHUB_REPOSITORY_ID, Optional.presentIfNotNull(endCursor))
+
             val releasesInPage =
                 apolloClient
                     .query(releasesQuery)
