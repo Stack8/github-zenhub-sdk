@@ -49,6 +49,7 @@ fragment IssueFragment on Issue {
     # No need to get all pages as issues don't realistically have >100
     connectedPrs(first: 5) {
         nodes {
+            id
             number
             state
             htmlUrl
