@@ -4,6 +4,7 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
 import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
+import com.ziro.engineering.github.graphql.sdk.GetIssueParentQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
@@ -30,6 +31,15 @@ class GitHubClient : AutoCloseable {
     ): RepositoryQuery.Repository? = runBlocking {
         val query = RepositoryQuery(repoName, repoOwner)
         apolloClient.query(query).toFlow().single().data?.repository
+    }
+
+    fun getParentIssue(
+        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
+        issueNumber: Int
+    ): GetIssueParentQuery.Parent? = runBlocking {
+        val query = GetIssueParentQuery(repoOwner, repoName, issueNumber)
+        apolloClient.query(query).toFlow().single().data?.repository?.issue?.parent
     }
 
     fun getFileFromBranch(
