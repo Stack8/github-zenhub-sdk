@@ -78,4 +78,11 @@ fragment IssueFragment on Issue {
             description
         }
     }
+    zenhubChildIssues(first: 100) {
+        nodes {
+            title,
+            id,
+            number
+        }
+    }
 }
