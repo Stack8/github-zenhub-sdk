@@ -2,24 +2,6 @@ fragment IssueFragment on Issue {
     id
     title
     number
-    parentIssue {
-        title
-        id
-        number
-    }
-    githubChildIssues (first: 100) {
-        nodes {
-            title
-            id
-            number
-        }
-    }
-    issueType {
-        ... on GithubIssueType {
-            name
-            description
-        }
-    }
     assignees {
         nodes {
             login
@@ -76,6 +58,24 @@ fragment IssueFragment on Issue {
     pipelineIssue(workspaceId: "59c54eb49d9e774e473597f1") {
         pipeline {
             name
+        }
+    }
+    parentIssue {
+        title
+        id
+        number
+    }
+    githubChildIssues (first: 100) {
+        nodes {
+            title
+            id
+            number
+        }
+    }
+    issueType {
+        ... on GithubIssueType {
+            name
+            description
         }
     }
 }
