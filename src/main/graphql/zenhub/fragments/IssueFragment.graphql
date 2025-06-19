@@ -65,24 +65,10 @@ fragment IssueFragment on Issue {
         id
         number
     }
-    githubChildIssues (first: 100) {
-        nodes {
-            title
-            id
-            number
-        }
-    }
     issueType {
         ... on GithubIssueType {
             name
             description
-        }
-    }
-    zenhubChildIssues(first: 100) {
-        nodes {
-            title,
-            id,
-            number
         }
     }
 }
