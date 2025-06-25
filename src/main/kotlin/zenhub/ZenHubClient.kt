@@ -20,7 +20,7 @@ private const val ZENHUB_GRAPHQL_URL = "https://api.zenhub.com/public/graphql"
 
 private const val DEFAULT_PAGE_SIZE = 100
 
-class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoCloseable {
+class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoCloseable {
 
     private val apolloClient: ApolloClient =
         ApolloClient.Builder()
@@ -282,6 +282,42 @@ class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID)
             apolloClient.query(query).toFlow().single().data?.node?.onRelease
         }
 
+    fun getReleaseByTitle(githubRepoId: Int, title: String): Release? = runBlocking {
+        val releases: ArrayList<GetMinimalReleasesQuery.Node> = ArrayList()
+        var endCursor: String? = null
+        var hasNextPage: Boolean
+
+        do {
+            val releasesQuery =
+                GetMinimalReleasesQuery(githubRepoId, Optional.presentIfNotNull(endCursor))
+
+            val releasesInPage =
+                apolloClient
+                    .query(releasesQuery)
+                    .toFlow()
+                    .single()
+                    .data
+                    ?.repositoriesByGhId
+                    ?.get(0)
+                    ?.releases
+
+            if (releasesInPage?.nodes != null) {
+                releases.addAll(releasesInPage.nodes)
+            }
+
+            hasNextPage = releasesInPage?.pageInfo?.hasNextPage ?: false
+            endCursor = releasesInPage?.pageInfo?.endCursor
+        } while (hasNextPage)
+
+        for (release in releases) {
+            if (release.title == title) {
+                return@runBlocking getRelease(release.id)
+            }
+        }
+
+        throw IllegalArgumentException("Release with title $title not found")
+    }
+
     fun addIssuesToRelease(
         issueIds: Set<String>,
         releaseId: String
@@ -516,7 +552,7 @@ class ZenHubClient(private val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID)
             queryResult = getSprintByState(sprintFilters, orderSprintsBy, endCursor)
 
             if (queryResult?.workspace?.sprints?.nodes != null) {
-                sprints.addAll(queryResult.workspace!!.sprints.nodes)
+                sprints.addAll(queryResult.workspace.sprints.nodes)
             }
 
             hasNextPage = queryResult?.workspace?.sprints?.pageInfo?.hasNextPage ?: false
