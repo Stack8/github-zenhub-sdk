@@ -79,7 +79,7 @@ apollo {
             endpointUrl.set("https://api.github.com/graphql")
             schemaFile.set(file("src/main/graphql/github/schema.json"))
         }
-        mapScalar("URI", "kotlin.String", "adapters.UriAdapter")
+        mapScalar("URI", "java.net.URI", "adapters.UriAdapter")
     }
 }
 
