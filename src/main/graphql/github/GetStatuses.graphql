@@ -1,6 +1,6 @@
-query GetStatuses($owner: String!, $repo: String!, $commitSha: String!) {
+query GetStatuses($owner: String!, $repo: String!, $gitReference: String!) {
     repository(owner: $owner, name: $repo) {
-        object(expression: $commitSha) {
+        object(expression: $gitReference) {
             ... on Commit {
                 status {
                     contexts {

@@ -79,9 +79,9 @@ class GitHubClient : AutoCloseable {
     fun getStatuses(
         repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
         repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
-        commitSha: String
+        gitReference: String
     ): List<GetStatusesQuery.Context> = runBlocking {
-        val query = GetStatusesQuery(repoOwner, repoName, commitSha)
+        val query = GetStatusesQuery(repoOwner, repoName, gitReference)
         apolloClient
             .query(query)
             .toFlow()
