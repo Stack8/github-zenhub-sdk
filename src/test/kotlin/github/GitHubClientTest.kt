@@ -2,6 +2,7 @@ package github
 
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
+import kotlin.text.isNullOrEmpty
 
 class GitHubClientTest {
     private val gitHubClient = GitHubClient()
@@ -44,5 +45,11 @@ class GitHubClientTest {
         val result =
             gitHubClient.getCommits(branch = "bad-branch", numCommits = MAX_COMMITS_IN_PAGE)
         assertEquals(0, result.size)
+    }
+
+    @Test
+    fun whenGetStatusesForDevelopThenStatusesAreReturned() {
+        val result = gitHubClient.getStatuses(gitReference = "develop")
+        assert(result.isNotEmpty())
     }
 }
