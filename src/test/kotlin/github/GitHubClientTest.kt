@@ -1,7 +1,6 @@
 package github
 
 import kotlin.test.assertEquals
-import kotlin.text.isNullOrEmpty
 import org.junit.jupiter.api.Test
 
 class GitHubClientTest {
