@@ -4,6 +4,7 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
 import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
+import com.ziro.engineering.github.graphql.sdk.GetStatusesQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
@@ -73,6 +74,24 @@ class GitHubClient : AutoCloseable {
         }
 
         commits
+    }
+
+    fun getStatuses(
+        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        gitReference: String
+    ): List<GetStatusesQuery.Context> = runBlocking {
+        val query = GetStatusesQuery(repoOwner, repoName, gitReference)
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.repository
+            ?.`object`
+            ?.onCommit
+            ?.status
+            ?.contexts ?: emptyList()
     }
 
     override fun close() {

@@ -1,2 +1,7 @@
-schema: 'src/main/graphql/zenhub/schema.json'
-documents: '**/*.graphql'
+projects:
+  zenhub:
+    schema: src/main/graphql/zenhub/schema.json
+    include: src/main/graphql/zenhub/**/*.graphql
+  github:
+    schema: src/main/graphql/github/schema.json
+    include: src/main/graphql/github/**/*.graphql

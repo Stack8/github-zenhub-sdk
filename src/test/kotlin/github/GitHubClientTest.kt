@@ -45,4 +45,10 @@ class GitHubClientTest {
             gitHubClient.getCommits(branch = "bad-branch", numCommits = MAX_COMMITS_IN_PAGE)
         assertEquals(0, result.size)
     }
+
+    @Test
+    fun whenGetStatusesForDevelopThenStatusesAreReturned() {
+        val result = gitHubClient.getStatuses(gitReference = "develop")
+        assert(result.isNotEmpty())
+    }
 }

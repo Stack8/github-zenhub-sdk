@@ -1,0 +1,17 @@
+query GetStatuses($owner: String!, $repo: String!, $gitReference: String!) {
+    repository(owner: $owner, name: $repo) {
+        object(expression: $gitReference) {
+            ... on Commit {
+                status {
+                    contexts {
+                        creator {
+                            login
+                        }
+                        state
+                        targetUrl
+                    }
+                }
+            }
+        }
+    }
+}
