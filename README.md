@@ -87,7 +87,7 @@ To publish a snapshot for use during development, you can run the following comm
 ```
 
 This will publish a snapshot of the library to our internal Maven repository at https://repository.goziro.com/ with 
-the name `<branchName>~SNAPSHOT`
+the name `<branchName>-SNAPSHOT`
 
 ### Publishing Your Changes
 Other projects ***SHOULD NOT*** be consuming snapshots (aside from locally during development). Instead, they should only consume

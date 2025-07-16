@@ -13,7 +13,7 @@ fun getBranchName(): String {
 
 if (project.hasProperty("snapshot")) {
     val branchName = getBranchName()
-    currentVersion = "${branchName}~SNAPSHOT"
+    currentVersion = "${branchName}-SNAPSHOT"
 }
 
 plugins {
