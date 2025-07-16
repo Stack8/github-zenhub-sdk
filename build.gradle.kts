@@ -1,7 +1,19 @@
-var currentVersion = "5.5.0"
+var currentVersion = file("version.txt").readText().trim()
+
+fun getBranchName(): String {
+    return try {
+        val process = ProcessBuilder("git", "branch", "--show-current")
+            .directory(rootDir)
+            .start()
+        process.inputStream.bufferedReader().readText().trim()
+    } catch (e: Exception) {
+        "unknown"
+    }
+}
 
 if (project.hasProperty("snapshot")) {
-    currentVersion = "${currentVersion}-SNAPSHOT"
+    val branchName = getBranchName()
+    currentVersion = "${branchName}~SNAPSHOT"
 }
 
 plugins {
