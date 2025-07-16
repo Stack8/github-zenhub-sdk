@@ -2,9 +2,19 @@ package github
 
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assumptions.assumeTrue
 
 class GitHubClientTest {
     private val gitHubClient = GitHubClient()
+
+    @BeforeEach
+    fun checkApiToken() {
+        assumeTrue(
+            System.getenv("GITHUB_API_TOKEN") != null,
+            "GITHUB_API_TOKEN not set - skipping integration tests"
+        )
+    }
 
     @Test
     fun whenGetFileFromBranchThenFileIsNotEmpty() {
