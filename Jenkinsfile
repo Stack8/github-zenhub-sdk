@@ -46,7 +46,7 @@ pipeline {
         // artifact from being published
         stage('push-tag') {
             when {
-                branch 'main'
+                branch 'develop'
             }
             steps {
                 script {
@@ -59,7 +59,7 @@ pipeline {
 
         stage('publish') {
             when {
-                branch 'main'
+                branch 'develop'
             }
             steps {
                 script {
@@ -70,6 +70,32 @@ pipeline {
                     }
                 }
 
+            }
+        }
+
+        stage('create-draft-release') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                script {
+                    withCredentials([gitUsernamePassword(credentialsId: 'github-http', gitToolName: 'Default', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                        sh """
+                            # Check if GitHub CLI is available
+                            if ! command -v gh &> /dev/null; then
+                                echo "GitHub CLI (gh) not found - skipping draft release creation"
+                                echo "Please install GitHub CLI on Jenkins agent or create release manually"
+                                exit 0
+                            fi
+                            
+                            gh release create v${env.VERSION} \\
+                                --title "Release v${env.VERSION}" \\
+                                --generate-notes \\
+                                --draft \\
+                                --repo Stack8/github-zenhub-sdk
+                        """
+                    }
+                }
             }
         }
     }
