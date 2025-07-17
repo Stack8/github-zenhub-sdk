@@ -1,19 +1,7 @@
-var currentVersion = file("version.txt").readText().trim()
-
-fun getBranchName(): String {
-    return try {
-        val process = ProcessBuilder("git", "branch", "--show-current")
-            .directory(rootDir)
-            .start()
-        process.inputStream.bufferedReader().readText().trim()
-    } catch (e: Exception) {
-        "unknown"
-    }
-}
+var currentVersion = "5.5.0"
 
 if (project.hasProperty("snapshot")) {
-    val branchName = getBranchName()
-    currentVersion = "${branchName}-SNAPSHOT"
+    currentVersion = "${currentVersion}-SNAPSHOT"
 }
 
 plugins {
@@ -50,8 +38,12 @@ publishing {
         maven {
             url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
-                username = System.getenv("SONATYPE_USERNAME") ?: ""
-                password = System.getenv("SONATYPE_PASSWORD") ?: ""
+                try {
+                    username = System.getenv("SONATYPE_USERNAME") as String
+                    password = System.getenv("SONATYPE_PASSWORD") as String
+                } catch (e: NullPointerException) {
+                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
+                }
             }
         }
     }
@@ -113,20 +105,4 @@ tasks.register("updateSchemas") {
         "downloadGithubApolloSchemaFromIntrospection",
         "downloadZenhubApolloSchemaFromIntrospection"
     )
-}
-
-tasks.register("validatePublishCredentials") {
-    group = "Publishing"
-    description = "Validates that publishing credentials are set"
-    doLast {
-        val username = System.getenv("SONATYPE_USERNAME")
-        val password = System.getenv("SONATYPE_PASSWORD")
-        if (username.isNullOrBlank() || password.isNullOrBlank()) {
-            throw GradleException("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables must be set for publishing. Please see the README for instructions.")
-        }
-    }
-}
-
-tasks.withType<PublishToMavenRepository> {
-    dependsOn("validatePublishCredentials")
 }
