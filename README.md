@@ -12,7 +12,7 @@ This library provides a convenient interface for interacting with GitHub and Zen
 
 We follow [Semantic Versioning 2.0.0][semantic-versioning-2], as we do in most projects at ZIRO.
 
-The version can be found in the [gradle build file][gradle-build-file].
+The version can be found in `version.txt`. YOU MUST BUMP THE VERSION WHEN MAKING CODE CHANGES.
 
 We should follow the git-flow process as we do in other projects. 
 
@@ -79,7 +79,30 @@ To publish the SDK, you can run the following command:
 ./gradlew publish
 ```
 
+### Development:
+
 To publish a snapshot for use during development, you can run the following command:
 ```bash
 ./gradlew publish -Psnapshot
 ```
+
+This will publish a snapshot of the library to our internal Maven repository at https://repository.goziro.com/ with 
+the name `<branchName>-SNAPSHOT`
+
+### Merging Your Changes
+
+Other projects ***SHOULD NOT*** be consuming snapshots (aside from locally during development). Instead, they should only consume
+proper releases. Publishing and tagging releases is handled by Jenkins. When you merge your changes to `develop`, it triggers a Jenkins
+job which builds and tests the repo, then attempts to tag the appropriate commit and publish a release on the nexus repository. 
+
+YOU MUST BUMP THE VERSION IN `./version.txt` WHEN MAKING CODE CHANGES FOR THIS SYSTEM TO WORK. 
+
+ZIRO-CLI MUST BE UPDATED TO CONSUME THE NEWEST VERSION OF
+
+### Release Notes
+Once you merge your changes, CI will publish a new version to Nexus and tag the repo. The last thing to do is to go to:
+
+https://github.com/Stack8/github-zenhub-sdk/releases
+
+And publish a new release. Click draft a new release, and select your tag, the previous tag, and click generate release notes. 
+Make sure "Set as the latest release" is selected, and publish your release. Now you're good to go! 
