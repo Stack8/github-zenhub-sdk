@@ -2,10 +2,19 @@ package zenhub
 
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class ZenHubClientTest {
     private val zenHubClient = ZenHubClient()
+
+    @BeforeEach
+    fun checkApiToken() {
+        assumeTrue(
+            System.getenv("ZENHUB_GRAPHQL_TOKEN") != null,
+            "ZENHUB_GRAPHQL_TOKEN not set - skipping integration tests")
+    }
 
     @Test
     fun whenIssueByInfoThenCorrectIssueIsReturned() {
