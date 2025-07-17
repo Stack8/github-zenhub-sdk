@@ -98,9 +98,9 @@ ENSURE THAT YOU HAVE BUMPED THE VERSION IN `./version.txt` WHEN MAKING CODE CHAN
 
 YOU MUST DO THESE TWO THING AFTER MERGING YOUR PR:
 
-***ziro-cli repo needs to be updated*** to consume the version of github-zenhub-sdk that you are publishing
+***ziro-cli repository needs to be updated*** to consume the version of github-zenhub-sdk that you are publishing
 
-Once you merge your changes, CI will publish a new version to Nexus and tag the repo. The last thing to do is to go to:
+Once you merge your changes to this repository, CI will publish a new version to Nexus and tag the repo. The last thing to do is to go to:
 
 https://github.com/Stack8/github-zenhub-sdk/releases
 
