@@ -89,11 +89,15 @@ To publish a snapshot for use during development, you can run the following comm
 This will publish a snapshot of the library to our internal Maven repository at https://repository.goziro.com/ with 
 the name `<branchName>-SNAPSHOT`
 
-### Publishing Your Changes
+### Merging Your Changes
+
 Other projects ***SHOULD NOT*** be consuming snapshots (aside from locally during development). Instead, they should only consume
-proper releases. Publishing and tagging releases is handled by Jenkins. When you merge your changes to `main`, it triggers a Jenkins
-job which builds and tests the repo, then attempts to tag the appropriate commit and publish a release. YOU MUST BUMP THE VERSION IN `./version.txt` WHEN
-MAKING CODE CHANGES FOR THIS SYSTEM TO WORK. 
+proper releases. Publishing and tagging releases is handled by Jenkins. When you merge your changes to `develop`, it triggers a Jenkins
+job which builds and tests the repo, then attempts to tag the appropriate commit and publish a release on the nexus repository. 
+
+YOU MUST BUMP THE VERSION IN `./version.txt` WHEN MAKING CODE CHANGES FOR THIS SYSTEM TO WORK. 
+
+ZIRO-CLI MUST BE UPDATED TO CONSUME THE NEWEST VERSION OF
 
 ### Release Notes
 Once you merge your changes, CI will publish a new version to Nexus and tag the repo. The last thing to do is to go to:
