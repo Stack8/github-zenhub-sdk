@@ -1,8 +1,17 @@
-var currentVersion = "5.5.0"
-
-if (project.hasProperty("snapshot")) {
-    currentVersion = "${currentVersion}-SNAPSHOT"
+fun resolveProjectVersion(): String {
+    val gitDescribe = "git describe --exact-match HEAD".runCatching { 
+        ProcessBuilder(*this.split(" ").toTypedArray()).directory(rootDir).start().inputStream.bufferedReader().readText().trim()
+    }.getOrElse { "" }
+    
+    val version = file("version.txt").readText().trim()
+    val branchName = "git rev-parse --abbrev-ref HEAD".runCatching {
+        ProcessBuilder(*this.split(" ").toTypedArray()).directory(rootDir).start().inputStream.bufferedReader().readText().trim()
+    }.getOrElse { "unknown" }
+    
+    return if (gitDescribe.isNotEmpty()) version else "$branchName-SNAPSHOT"
 }
+
+var currentVersion = resolveProjectVersion()
 
 plugins {
     java
@@ -41,8 +50,8 @@ publishing {
                 try {
                     username = System.getenv("SONATYPE_USERNAME") as String
                     password = System.getenv("SONATYPE_PASSWORD") as String
-                } catch (e: NullPointerException) {
-                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
+                } catch (e: Exception) {
+                    throw Exception("SONATYPE_USERNAME and/or SONATYPE_PASSWORD environment variables are not set! Configure the following environment variables: SONATYPE_USERNAME=gradle SONATYPE_PASSWORD=<get password from 1pass>", e)
                 }
             }
         }
@@ -105,4 +114,13 @@ tasks.register("updateSchemas") {
         "downloadGithubApolloSchemaFromIntrospection",
         "downloadZenhubApolloSchemaFromIntrospection"
     )
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    val predicate = provider {
+        version.toString().contains("SNAPSHOT") || System.getenv().getOrDefault("CI_MODE", "false") == "true"
+    }
+    onlyIf("Artifact is a snapshot or running in CI") {
+        predicate.get()
+    }
 }
