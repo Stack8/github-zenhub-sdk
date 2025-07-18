@@ -81,19 +81,19 @@ To publish the SDK, you can run the following command:
 
 ### Development:
 
-To publish a snapshot for use during development, you can run the following command:
+Snapshots are created automatically when working on untagged commits. To publish a snapshot:
 ```bash
-./gradlew publish -Psnapshot
+./gradlew publish
 ```
 
-This will publish a snapshot of the library to our internal Maven repository at https://repository.goziro.com/ with 
-the name `<branchName>-SNAPSHOT`
+This will publish a snapshot with the format `<branchName>-SNAPSHOT` (e.g., `feature-123-SNAPSHOT`).
+
+### Releasing:
+
+Release publishing is handled automatically by CI and is blocked for local development to prevent accidents. When CI runs on tagged commits, it publishes the official release version.
 
 ### Merging Your Changes
 
-Other projects ***SHOULD NOT*** be consuming snapshots (aside from locally during development). Instead, they should only consume
-proper releases. Publishing and tagging releases is handled by Jenkins. When you merge your changes to `develop`, it triggers a Jenkins
-job which builds and tests the repo, then attempts to tag the appropriate commit and publish a release on the nexus repository. 
 ENSURE THAT YOU HAVE BUMPED THE VERSION IN `./version.txt` WHEN MAKING CODE CHANGES FOR THIS SYSTEM TO WORK. 
 
 YOU MUST DO THESE TWO THING AFTER MERGING YOUR PR:
