@@ -1,0 +1,5 @@
+mutation AddAssigneesToIssues($input: AddAssigneesToIssuesInput!) {
+    addAssigneesToIssues(input: $input) {
+        clientMutationId
+    }
+}

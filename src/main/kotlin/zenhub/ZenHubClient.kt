@@ -535,6 +535,31 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).execute()
     }
 
+    fun addAssigneesToIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = AddAssigneesToIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = AddAssigneesToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeAssigneesFromIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = RemoveAssigneesFromIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = RemoveAssigneesFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun addLabelsToIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
+        val input = AddLabelsToIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+        val mutation = AddLabelsToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeLabelsFromIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
+        val input =
+            RemoveLabelsFromIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+        val mutation = RemoveLabelsFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
