@@ -4,6 +4,7 @@ fragment IssueFragment on Issue {
     number
     assignees {
         nodes {
+            id
             login
         }
     }
@@ -14,6 +15,7 @@ fragment IssueFragment on Issue {
     labels(first: 100) {
         totalCount
         nodes {
+            id
             name
         }
     }
@@ -27,8 +29,7 @@ fragment IssueFragment on Issue {
             state
         }
     }
-    # No need to get all releases as >100 is unrealistic
-    releases {
+    releases(first: 1) {
         nodes {
             id
         }

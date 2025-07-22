@@ -12,7 +12,7 @@ fun main() {
         }
         val fourteenDays = Duration.ofDays(28)
         val response =
-            client.searchClosedIssuesBetween(Instant.now().minus(fourteenDays), Instant.now())
+            client.searchClosedIssues(Instant.now().minus(fourteenDays), Instant.now(), null)
         println("Results Size: ${response.size}")
 
         response.forEach { node -> println(node) }

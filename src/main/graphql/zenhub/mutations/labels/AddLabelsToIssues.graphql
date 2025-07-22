@@ -1,0 +1,5 @@
+mutation AddLabelsToIssues($input: AddLabelsToIssuesInput!) {
+    addLabelsToIssues(input: $input) {
+        clientMutationId
+    }
+}

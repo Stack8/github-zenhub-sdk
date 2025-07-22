@@ -6,6 +6,7 @@ import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.collections.toSet
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -27,28 +28,6 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             .serverUrl(ZENHUB_GRAPHQL_URL)
             .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}")
             .build()
-
-    fun searchClosedIssuesBetween(
-        startTime: Instant,
-        endTime: Instant
-    ): List<SearchClosedIssuesQuery.Node> {
-        val results = ArrayList<SearchClosedIssuesQuery.Node>()
-        val issueOnlyFilter =
-            IssueSearchFiltersInput(
-                displayType = Optional.present(DisplayFilter.issues),
-            )
-        var earliestClosedDate: Instant
-        var cursor: String? = null
-
-        do {
-            val page = searchClosedIssues(issueOnlyFilter, cursor)
-            page?.nodes?.let { results.addAll(it) }
-            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
-            cursor = page?.pageInfo?.endCursor
-        } while (earliestClosedDate.isAfter(startTime))
-
-        return trimResults(results, startTime, endTime)
-    }
 
     fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
         val results =
@@ -535,6 +514,48 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).execute()
     }
 
+    fun addAssigneesToIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = AddAssigneesToIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = AddAssigneesToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeAssigneesFromIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = RemoveAssigneesFromIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = RemoveAssigneesFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun addLabelsToIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
+        val input = AddLabelsToIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+        val mutation = AddLabelsToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeLabelsFromIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
+        val input =
+            RemoveLabelsFromIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+        val mutation = RemoveLabelsFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun getReleaseByIssueId(issueId: String): Release? = runBlocking {
+        val query = GetIssuesQuery(listOf(issueId))
+        val result = apolloClient.query(query).toFlow().single().data?.issues ?: emptyList()
+
+        if (result.isEmpty()) {
+            throw IllegalArgumentException("Issue $issueId not found")
+        }
+
+        val issue = result[0]
+
+        if (issue.issueFragment.releases.nodes.isEmpty()) {
+            return@runBlocking null
+        }
+
+        getRelease(issue.issueFragment.releases.nodes[0].id)
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
@@ -575,6 +596,38 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
                 orderSprintsBy,
                 Optional.presentIfNotNull(endCursor))
         apolloClient.query(query).toFlow().single().data
+    }
+
+    fun searchClosedIssues(
+        startTime: Instant,
+        endTime: Instant,
+        labelIds: List<String>?
+    ): List<SearchClosedIssuesQuery.Node> = runBlocking {
+        val labels: Optional<StringInput?> =
+            if (labelIds == null || labelIds.isEmpty()) {
+                Optional.absent()
+            } else {
+                Optional.present(StringInput(`in` = Optional.present(labelIds)))
+            }
+
+        val displayType = Optional.present(DisplayFilter.issues)
+        val matchType = Optional.present(MatchingFilter.all)
+        val filter =
+            IssueSearchFiltersInput(
+                labels = labels, displayType = displayType, matchType = matchType)
+
+        val results = ArrayList<SearchClosedIssuesQuery.Node>()
+        var earliestClosedDate: Instant
+        var cursor: String? = null
+
+        do {
+            val page = searchClosedIssues(filter, cursor)
+            page?.nodes?.let { results.addAll(it) }
+            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
+            cursor = page?.pageInfo?.endCursor
+        } while (earliestClosedDate.isAfter(startTime))
+
+        trimResults(results, startTime, endTime)
     }
 
     private fun searchClosedIssues(
