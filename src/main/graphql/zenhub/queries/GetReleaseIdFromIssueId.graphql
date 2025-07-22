@@ -1,9 +1,0 @@
-query GetReleaseIdFromIssueId($issueId: ID!) {
-    issues(ids: [$issueId]) {
-        releases(first: 1) {
-            nodes {
-                id
-            }
-        }
-    }
-}

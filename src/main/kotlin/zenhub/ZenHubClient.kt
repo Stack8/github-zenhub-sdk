@@ -562,7 +562,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     }
 
     fun getReleaseByIssueId(issueId: String): Release? = runBlocking {
-        val query = GetReleaseIdFromIssueIdQuery(issueId)
+        val query = GetIssuesQuery(listOf(issueId))
         val result = apolloClient.query(query).toFlow().single().data?.issues ?: emptyList()
 
         if (result.isEmpty()) {
@@ -571,11 +571,11 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
 
         val issue = result[0]
 
-        if (issue.releases.nodes.isEmpty()) {
+        if (issue.issueFragment.releases.nodes.isEmpty()) {
             return@runBlocking null
         }
 
-        getRelease(issue.releases.nodes[0].id)
+        getRelease(issue.issueFragment.releases.nodes[0].id)
     }
 
     override fun close() {
