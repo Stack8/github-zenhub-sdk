@@ -29,28 +29,6 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}")
             .build()
 
-    fun searchClosedIssuesBetween(
-        startTime: Instant,
-        endTime: Instant
-    ): List<SearchClosedIssuesQuery.Node> {
-        val results = ArrayList<SearchClosedIssuesQuery.Node>()
-        val issueOnlyFilter =
-            IssueSearchFiltersInput(
-                displayType = Optional.present(DisplayFilter.issues),
-            )
-        var earliestClosedDate: Instant
-        var cursor: String? = null
-
-        do {
-            val page = searchClosedIssues(issueOnlyFilter, cursor)
-            page?.nodes?.let { results.addAll(it) }
-            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
-            cursor = page?.pageInfo?.endCursor
-        } while (earliestClosedDate.isAfter(startTime))
-
-        return trimResults(results, startTime, endTime)
-    }
-
     fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
         val results =
             getSprintByState(
@@ -618,6 +596,38 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
                 orderSprintsBy,
                 Optional.presentIfNotNull(endCursor))
         apolloClient.query(query).toFlow().single().data
+    }
+
+    fun searchClosedIssues(
+        startTime: Instant,
+        endTime: Instant,
+        labelIds: List<String>?
+    ): List<SearchClosedIssuesQuery.Node> = runBlocking {
+        val labels: Optional<StringInput?> =
+            if (labelIds == null || labelIds.isEmpty()) {
+                Optional.absent()
+            } else {
+                Optional.present(StringInput(`in` = Optional.present(labelIds)))
+            }
+
+        val displayType = Optional.present(DisplayFilter.issues)
+        val matchType = Optional.present(MatchingFilter.all)
+        val filter =
+            IssueSearchFiltersInput(
+                labels = labels, displayType = displayType, matchType = matchType)
+
+        val results = ArrayList<SearchClosedIssuesQuery.Node>()
+        var earliestClosedDate: Instant
+        var cursor: String? = null
+
+        do {
+            val page = searchClosedIssues(filter, cursor)
+            page?.nodes?.let { results.addAll(it) }
+            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
+            cursor = page?.pageInfo?.endCursor
+        } while (earliestClosedDate.isAfter(startTime))
+
+        trimResults(results, startTime, endTime)
     }
 
     private fun searchClosedIssues(
