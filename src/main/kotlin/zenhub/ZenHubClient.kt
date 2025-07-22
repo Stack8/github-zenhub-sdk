@@ -6,6 +6,7 @@ import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.collections.toSet
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -558,6 +559,23 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             RemoveLabelsFromIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
         val mutation = RemoveLabelsFromIssuesMutation(input)
         apolloClient.mutation(mutation).execute()
+    }
+
+    fun getReleaseByIssueId(issueId: String): Release? = runBlocking {
+        val query = GetReleaseIdFromIssueIdQuery(issueId)
+        val result = apolloClient.query(query).toFlow().single().data?.issues ?: emptyList()
+
+        if (result.isEmpty()) {
+            throw IllegalArgumentException("Issue $issueId not found")
+        }
+
+        val issue = result[0]
+
+        if (issue.releases.nodes.isEmpty()) {
+            return@runBlocking null
+        }
+
+        getRelease(issue.releases.nodes[0].id)
     }
 
     override fun close() {

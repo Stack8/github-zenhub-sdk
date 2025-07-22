@@ -29,8 +29,7 @@ fragment IssueFragment on Issue {
             state
         }
     }
-    # No need to get all releases as >100 is unrealistic
-    releases {
+    releases(first: 1) {
         nodes {
             id
         }
