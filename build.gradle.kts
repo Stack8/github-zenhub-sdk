@@ -49,6 +49,13 @@ repositories {
     mavenCentral()
 }
 
+val sonatypeUsername = System.getenv("SONATYPE_USERNAME") ?: ""
+val sonatypePassword = System.getenv("SONATYPE_PASSWORD") ?: ""
+
+if (sonatypeUsername.isEmpty() || sonatypePassword.isEmpty()) {
+    println("WARNING: SONATYPE_USERNAME and/or SONATYPE_PASSWORD environment variables are not set! Publishing will fail if attempted.")
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -63,12 +70,8 @@ publishing {
         maven {
             url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
-                try {
-                    username = System.getenv("SONATYPE_USERNAME") as String
-                    password = System.getenv("SONATYPE_PASSWORD") as String
-                } catch (e: NullPointerException) {
-                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
-                }
+                username = sonatypeUsername
+                password = sonatypePassword
             }
         }
     }
