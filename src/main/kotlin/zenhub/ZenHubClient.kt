@@ -187,14 +187,14 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         }
     }
 
-    fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
+    fun getSprints(): List<GetSprintsQuery.Node> = runBlocking {
         val sprints = ArrayList<GetSprintsQuery.Node>()
         var queryResult: GetSprintsQuery.Sprints?
         var hasNextPage = false
         var endCursor: String? = null
 
         do {
-            val query = GetSprintsQuery(workspaceId, Optional.present(endCursor))
+            val query = GetSprintsQuery(zenhubWorkspaceId, Optional.present(endCursor))
             queryResult = apolloClient.query(query).toFlow().single().data?.workspace?.sprints
 
             if (queryResult != null) {
@@ -211,7 +211,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? =
         runBlocking {
             val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
-            val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
+            val mutation = MoveIssueMutation(input, zenhubWorkspaceId)
             apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
         }
 
