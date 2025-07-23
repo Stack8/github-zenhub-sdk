@@ -1,8 +1,30 @@
-var currentVersion = "5.5.0"
+fun resolveProjectVersion(): String {
+    val gitDescribe = runCatching {
+        ProcessBuilder(*"git describe --exact-match HEAD".split(" ").toTypedArray())
+            .directory(rootDir)
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
+    }.getOrElse { "" }
 
-if (project.hasProperty("snapshot")) {
-    currentVersion = "${currentVersion}-SNAPSHOT"
+    val version = file("version.txt").readText().trim()
+
+    val branchName = runCatching {
+        ProcessBuilder(*"git rev-parse --abbrev-ref HEAD".split(" ").toTypedArray())
+            .directory(rootDir)
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
+    }.getOrElse { "unknown" }
+
+    return if (gitDescribe.isNotEmpty()) version else "$branchName-SNAPSHOT"
 }
+
+var currentVersion = resolveProjectVersion()
 
 plugins {
     java
@@ -24,6 +46,13 @@ repositories {
     mavenCentral()
 }
 
+val sonatypeUsername = System.getenv("SONATYPE_USERNAME") ?: ""
+val sonatypePassword = System.getenv("SONATYPE_PASSWORD") ?: ""
+
+if (sonatypeUsername.isEmpty() || sonatypePassword.isEmpty()) {
+    println("WARNING: SONATYPE_USERNAME and/or SONATYPE_PASSWORD environment variables are not set! Publishing will fail if attempted.")
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -38,12 +67,8 @@ publishing {
         maven {
             url = uri("https://repository.goziro.com/repository/engineering/")
             credentials {
-                try {
-                    username = System.getenv("SONATYPE_USERNAME") as String
-                    password = System.getenv("SONATYPE_PASSWORD") as String
-                } catch (e: NullPointerException) {
-                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
-                }
+                username = sonatypeUsername
+                password = sonatypePassword
             }
         }
     }
@@ -105,4 +130,13 @@ tasks.register("updateSchemas") {
         "downloadGithubApolloSchemaFromIntrospection",
         "downloadZenhubApolloSchemaFromIntrospection"
     )
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    val predicate = provider {
+        version.toString().contains("SNAPSHOT") || System.getenv().getOrDefault("CI_MODE", "false") == "true"
+    }
+    onlyIf("Artifact is a snapshot or running in CI") {
+        predicate.get()
+    }
 }
