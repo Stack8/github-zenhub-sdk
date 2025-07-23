@@ -74,35 +74,19 @@ export SONATYPE_USERNAME=gradle
 export SONATYPE_PASSWORD=<get password from 1pass>
 ```
 
-To publish the SDK, you can run the following command:
-```bash
-./gradlew publish
-```
-
-### Development:
-
 Snapshots are created automatically when working on untagged commits. To publish a snapshot:
 ```bash
 ./gradlew publish
 ```
 
-This will publish a snapshot with the format `<branchName>-SNAPSHOT` (e.g., `feature-123-SNAPSHOT`).
+This will publish a snapshot with the format `<branchName>-SNAPSHOT` (e.g. `feature-123-SNAPSHOT`).
 
-### Releasing:
+### Releases
 
 Release publishing is handled automatically by CI and is blocked for local development to prevent accidents. When CI runs on tagged commits, it publishes the official release version.
 
 ### Merging Your Changes
 
-ENSURE THAT YOU HAVE BUMPED THE VERSION IN `./version.txt` WHEN MAKING CODE CHANGES FOR THIS SYSTEM TO WORK. 
-
-YOU MUST DO THESE TWO THING AFTER MERGING YOUR PR:
-
-***ziro-cli repository needs to be updated*** to consume the version of github-zenhub-sdk that you are publishing
-
-Once you merge your changes to this repository, CI will publish a new version to Nexus and tag the repo. The last thing to do is to go to:
-
-https://github.com/Stack8/github-zenhub-sdk/releases
-
-And ***publish a new release***. Click draft a new release, and select your tag, the previous tag, and click generate release notes. 
-Make sure "Set as the latest release" is selected, and publish your release. Now you're good to go! 
+Once you merge your changes, the last thing to do is to go [here](https://github.com/Stack8/github-zenhub-sdk/releases) and
+***publish a new release***. Click draft a new release, and select your tag, the previous tag, and click generate release notes. 
+Make sure "Set as the latest release" is selected and publish your release. Now you're good to go! 

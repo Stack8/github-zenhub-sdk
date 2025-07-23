@@ -1,13 +1,29 @@
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
+
+fun runCommand(vararg command: String): String {
+    val output = ByteArrayOutputStream()
+
+    exec {
+        commandLine(*command)
+        standardOutput = output
+        errorOutput = OutputStream.nullOutputStream()
+        isIgnoreExitValue = true
+    }
+    return output.toString().trim()
+}
+
 fun resolveProjectVersion(): String {
-    val gitDescribe = "git describe --exact-match HEAD".runCatching { 
-        ProcessBuilder(*this.split(" ").toTypedArray()).directory(rootDir).start().inputStream.bufferedReader().readText().trim()
+    val gitDescribe = runCatching {
+        runCommand("git describe --exact-match HEAD")
     }.getOrElse { "" }
-    
+
     val version = file("version.txt").readText().trim()
-    val branchName = "git rev-parse --abbrev-ref HEAD".runCatching {
-        ProcessBuilder(*this.split(" ").toTypedArray()).directory(rootDir).start().inputStream.bufferedReader().readText().trim()
+
+    val branchName = runCatching {
+        runCommand("git rev-parse --abbrev-ref HEAD")
     }.getOrElse { "unknown" }
-    
+
     return if (gitDescribe.isNotEmpty()) version else "$branchName-SNAPSHOT"
 }
 
@@ -50,8 +66,8 @@ publishing {
                 try {
                     username = System.getenv("SONATYPE_USERNAME") as String
                     password = System.getenv("SONATYPE_PASSWORD") as String
-                } catch (e: Exception) {
-                    throw Exception("SONATYPE_USERNAME and/or SONATYPE_PASSWORD environment variables are not set! Configure the following environment variables: SONATYPE_USERNAME=gradle SONATYPE_PASSWORD=<get password from 1pass>", e)
+                } catch (e: NullPointerException) {
+                    throw Exception("SONATYPE_USERNAME and SONATYPE_PASSWORD environment variables are not set! Please see the README for instructions on how to do this.", e)
                 }
             }
         }
