@@ -12,7 +12,7 @@ This library provides a convenient interface for interacting with GitHub and Zen
 
 We follow [Semantic Versioning 2.0.0][semantic-versioning-2], as we do in most projects at ZIRO.
 
-The version can be found in `version.txt`. YOU MUST BUMP THE VERSION WHEN MAKING CODE CHANGES.
+The version can be found in the [gradle build file][gradle-build-file].
 
 We should follow the git-flow process as we do in other projects. 
 
@@ -74,19 +74,12 @@ export SONATYPE_USERNAME=gradle
 export SONATYPE_PASSWORD=<get password from 1pass>
 ```
 
-Snapshots are created automatically when working on untagged commits. To publish a snapshot:
+To publish the SDK, you can run the following command:
 ```bash
 ./gradlew publish
 ```
 
-This will publish a snapshot with the format `<branchName>-SNAPSHOT` (e.g. `feature-123-SNAPSHOT`).
-
-### Releases
-
-Release publishing is handled automatically by CI and is blocked for local development to prevent accidents. When CI runs on tagged commits, it publishes the official release version.
-
-### Merging Your Changes
-
-Once you merge your changes, the last thing to do is to go [here](https://github.com/Stack8/github-zenhub-sdk/releases) and
-***publish a new release***. Click draft a new release, and select your tag, the previous tag, and click generate release notes. 
-Make sure "Set as the latest release" is selected and publish your release. Now you're good to go! 
+To publish a snapshot for use during development, you can run the following command:
+```bash
+./gradlew publish -Psnapshot
+```
