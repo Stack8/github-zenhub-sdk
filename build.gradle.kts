@@ -1,27 +1,24 @@
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
-
-fun runCommand(vararg command: String): String {
-    val output = ByteArrayOutputStream()
-
-    exec {
-        commandLine(*command)
-        standardOutput = output
-        errorOutput = OutputStream.nullOutputStream()
-        isIgnoreExitValue = true
-    }
-    return output.toString().trim()
-}
-
 fun resolveProjectVersion(): String {
     val gitDescribe = runCatching {
-        runCommand("git describe --exact-match HEAD")
+        ProcessBuilder(*"git describe --exact-match HEAD".split(" ").toTypedArray())
+            .directory(rootDir)
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
     }.getOrElse { "" }
 
     val version = file("version.txt").readText().trim()
 
     val branchName = runCatching {
-        runCommand("git rev-parse --abbrev-ref HEAD")
+        ProcessBuilder(*"git rev-parse --abbrev-ref HEAD".split(" ").toTypedArray())
+            .directory(rootDir)
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
     }.getOrElse { "unknown" }
 
     return if (gitDescribe.isNotEmpty()) version else "$branchName-SNAPSHOT"
