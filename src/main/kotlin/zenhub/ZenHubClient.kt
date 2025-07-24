@@ -7,6 +7,7 @@ import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.collections.toSet
+import kotlin.streams.toList
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -526,15 +527,43 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).execute()
     }
 
-    fun addLabelsToIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
-        val input = AddLabelsToIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+    fun addLabelsToIssues(
+        issueIds: List<String>,
+        labelNames: List<String>,
+        labelColours: List<String>
+    ) = runBlocking {
+        if (labelNames.size != labelColours.size) {
+            throw IllegalArgumentException("labelNames and labelColours must be the same size")
+        }
+
+        val labelInfos =
+            labelNames.indices.map { i ->
+                LabelInfoInput(Optional.present(labelNames[i]), Optional.present(labelColours[i]))
+            }
+        val input =
+            AddLabelsToIssuesInput(issueIds = issueIds, labelInfos = Optional.present(labelInfos))
+
         val mutation = AddLabelsToIssuesMutation(input)
         apolloClient.mutation(mutation).execute()
     }
 
-    fun removeLabelsFromIssues(issueIds: List<String>, labelIds: List<String>) = runBlocking {
+    fun removeLabelsFromIssues(
+        issueIds: List<String>,
+        labelNames: List<String>,
+        labelColours: List<String>
+    ) = runBlocking {
+        if (labelNames.size != labelColours.size) {
+            throw IllegalArgumentException("labelNames and labelColours must be the same size")
+        }
+
+        val labelInfos =
+            labelNames.indices.map { i ->
+                LabelInfoInput(Optional.present(labelNames[i]), Optional.present(labelColours[i]))
+            }
         val input =
-            RemoveLabelsFromIssuesInput(Optional.absent(), issueIds, Optional.present(labelIds))
+            RemoveLabelsFromIssuesInput(
+                issueIds = issueIds, labelInfos = Optional.present(labelInfos))
+
         val mutation = RemoveLabelsFromIssuesMutation(input)
         apolloClient.mutation(mutation).execute()
     }
@@ -617,15 +646,20 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
                 labels = labels, displayType = displayType, matchType = matchType)
 
         val results = ArrayList<SearchClosedIssuesQuery.Node>()
-        var earliestClosedDate: Instant
         var cursor: String? = null
 
         do {
             val page = searchClosedIssues(filter, cursor)
-            page?.nodes?.let { results.addAll(it) }
-            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
-            cursor = page?.pageInfo?.endCursor
-        } while (earliestClosedDate.isAfter(startTime))
+
+            if (page == null || page.nodes.isEmpty()) {
+                break
+            }
+
+            page.nodes.let { results.addAll(it) }
+            val earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
+            cursor = page.pageInfo.endCursor
+            val hasNextPage = page.pageInfo.hasNextPage
+        } while (hasNextPage && earliestClosedDate.isAfter(startTime))
 
         trimResults(results, startTime, endTime)
     }
@@ -650,20 +684,12 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             return results
         }
 
-        val indexOfEarliestIssue =
-            results.indexOfFirst { issue ->
-                Instant.parse(issue.issueFragment.closedAt.toString()).isBefore(startDate)
-            }
+        val closedAtDates =
+            results.map { it to Instant.parse(it.issueFragment.closedAt.toString()) }
 
-        var indexOfLatestIssue = -1
-        if (Instant.parse(results[0].issueFragment.closedAt.toString()).isAfter(endDate)) {
-            indexOfLatestIssue =
-                results.indexOfLast { issue ->
-                    Instant.parse(issue.issueFragment.closedAt.toString()).isAfter(endDate)
-                }
-        }
-
-        return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
+        return closedAtDates
+            .filter { (_, date) -> !date.isBefore(startDate) && !date.isAfter(endDate) }
+            .map { (item, _) -> item }
     }
 
     private fun handleQueryErrors(

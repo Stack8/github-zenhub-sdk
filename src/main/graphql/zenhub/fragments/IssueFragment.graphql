@@ -15,8 +15,8 @@ fragment IssueFragment on Issue {
     labels(first: 100) {
         totalCount
         nodes {
-            id
             name
+            color
         }
     }
     # No need to get all sprints as >100 is unrealistic
