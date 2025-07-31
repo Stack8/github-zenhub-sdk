@@ -1,0 +1,5 @@
+mutation RemoveLabelsFromIssues($input: RemoveLabelsFromIssuesInput!) {
+    removeLabelsFromIssues(input: $input) {
+        clientMutationId
+    }
+}

@@ -6,6 +6,8 @@ import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.collections.toSet
+import kotlin.streams.toList
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -27,28 +29,6 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             .serverUrl(ZENHUB_GRAPHQL_URL)
             .addHttpHeader("Authorization", "Bearer ${System.getenv("ZENHUB_GRAPHQL_TOKEN")}")
             .build()
-
-    fun searchClosedIssuesBetween(
-        startTime: Instant,
-        endTime: Instant
-    ): List<SearchClosedIssuesQuery.Node> {
-        val results = ArrayList<SearchClosedIssuesQuery.Node>()
-        val issueOnlyFilter =
-            IssueSearchFiltersInput(
-                displayType = Optional.present(DisplayFilter.issues),
-            )
-        var earliestClosedDate: Instant
-        var cursor: String? = null
-
-        do {
-            val page = searchClosedIssues(issueOnlyFilter, cursor)
-            page?.nodes?.let { results.addAll(it) }
-            earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
-            cursor = page?.pageInfo?.endCursor
-        } while (earliestClosedDate.isAfter(startTime))
-
-        return trimResults(results, startTime, endTime)
-    }
 
     fun getCurrentSprint(): GetSprintsByStateQuery.Node? = runBlocking {
         val results =
@@ -208,14 +188,14 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         }
     }
 
-    fun getSprints(workspaceId: String): List<GetSprintsQuery.Node> = runBlocking {
+    fun getSprints(): List<GetSprintsQuery.Node> = runBlocking {
         val sprints = ArrayList<GetSprintsQuery.Node>()
         var queryResult: GetSprintsQuery.Sprints?
         var hasNextPage = false
         var endCursor: String? = null
 
         do {
-            val query = GetSprintsQuery(workspaceId, Optional.present(endCursor))
+            val query = GetSprintsQuery(zenhubWorkspaceId, Optional.present(endCursor))
             queryResult = apolloClient.query(query).toFlow().single().data?.workspace?.sprints
 
             if (queryResult != null) {
@@ -232,7 +212,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     fun moveIssueToPipeline(issueId: String, pipelineId: String): MoveIssueMutation.MoveIssue? =
         runBlocking {
             val input = MoveIssueInput(Optional.absent(), pipelineId, issueId, Optional.present(0))
-            val mutation = MoveIssueMutation(input, DEFAULT_WORKSPACE_ID)
+            val mutation = MoveIssueMutation(input, zenhubWorkspaceId)
             apolloClient.mutation(mutation).toFlow().single().data?.moveIssue
         }
 
@@ -535,6 +515,76 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).execute()
     }
 
+    fun addAssigneesToIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = AddAssigneesToIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = AddAssigneesToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeAssigneesFromIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
+        val input = RemoveAssigneesFromIssuesInput(Optional.absent(), issueIds, assigneeIds)
+        val mutation = RemoveAssigneesFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun addLabelsToIssues(
+        issueIds: List<String>,
+        labelNames: List<String>,
+        labelColours: List<String>
+    ) = runBlocking {
+        if (labelNames.size != labelColours.size) {
+            throw IllegalArgumentException("labelNames and labelColours must be the same size")
+        }
+
+        val labelInfos =
+            labelNames.indices.map { i ->
+                LabelInfoInput(Optional.present(labelNames[i]), Optional.present(labelColours[i]))
+            }
+        val input =
+            AddLabelsToIssuesInput(issueIds = issueIds, labelInfos = Optional.present(labelInfos))
+
+        val mutation = AddLabelsToIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun removeLabelsFromIssues(
+        issueIds: List<String>,
+        labelNames: List<String>,
+        labelColours: List<String>
+    ) = runBlocking {
+        if (labelNames.size != labelColours.size) {
+            throw IllegalArgumentException("labelNames and labelColours must be the same size")
+        }
+
+        val labelInfos =
+            labelNames.indices.map { i ->
+                LabelInfoInput(Optional.present(labelNames[i]), Optional.present(labelColours[i]))
+            }
+        val input =
+            RemoveLabelsFromIssuesInput(
+                issueIds = issueIds, labelInfos = Optional.present(labelInfos))
+
+        val mutation = RemoveLabelsFromIssuesMutation(input)
+        apolloClient.mutation(mutation).execute()
+    }
+
+    fun getReleaseByIssueId(issueId: String): Release? = runBlocking {
+        val query = GetIssuesQuery(listOf(issueId))
+        val result = apolloClient.query(query).toFlow().single().data?.issues ?: emptyList()
+
+        if (result.isEmpty()) {
+            throw IllegalArgumentException("Issue $issueId not found")
+        }
+
+        val issue = result[0]
+
+        if (issue.issueFragment.releases.nodes.isEmpty()) {
+            return@runBlocking null
+        }
+
+        getRelease(issue.issueFragment.releases.nodes[0].id)
+    }
+
     override fun close() {
         apolloClient.closeQuietly()
     }
@@ -577,6 +627,43 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.query(query).toFlow().single().data
     }
 
+    fun searchClosedIssues(
+        startTime: Instant,
+        endTime: Instant,
+        labelIds: List<String>?
+    ): List<SearchClosedIssuesQuery.Node> = runBlocking {
+        val labels: Optional<StringInput?> =
+            if (labelIds == null || labelIds.isEmpty()) {
+                Optional.absent()
+            } else {
+                Optional.present(StringInput(`in` = Optional.present(labelIds)))
+            }
+
+        val displayType = Optional.present(DisplayFilter.issues)
+        val matchType = Optional.present(MatchingFilter.all)
+        val filter =
+            IssueSearchFiltersInput(
+                labels = labels, displayType = displayType, matchType = matchType)
+
+        val results = ArrayList<SearchClosedIssuesQuery.Node>()
+        var cursor: String? = null
+
+        do {
+            val page = searchClosedIssues(filter, cursor)
+
+            if (page == null || page.nodes.isEmpty()) {
+                break
+            }
+
+            page.nodes.let { results.addAll(it) }
+            val earliestClosedDate = Instant.parse(results.last().issueFragment.closedAt.toString())
+            cursor = page.pageInfo.endCursor
+            val hasNextPage = page.pageInfo.hasNextPage
+        } while (hasNextPage && earliestClosedDate.isAfter(startTime))
+
+        trimResults(results, startTime, endTime)
+    }
+
     private fun searchClosedIssues(
         filters: IssueSearchFiltersInput,
         after: String?
@@ -597,20 +684,12 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             return results
         }
 
-        val indexOfEarliestIssue =
-            results.indexOfFirst { issue ->
-                Instant.parse(issue.issueFragment.closedAt.toString()).isBefore(startDate)
-            }
+        val closedAtDates =
+            results.map { it to Instant.parse(it.issueFragment.closedAt.toString()) }
 
-        var indexOfLatestIssue = -1
-        if (Instant.parse(results[0].issueFragment.closedAt.toString()).isAfter(endDate)) {
-            indexOfLatestIssue =
-                results.indexOfLast { issue ->
-                    Instant.parse(issue.issueFragment.closedAt.toString()).isAfter(endDate)
-                }
-        }
-
-        return results.subList(indexOfLatestIssue + 1, indexOfEarliestIssue)
+        return closedAtDates
+            .filter { (_, date) -> !date.isBefore(startDate) && !date.isAfter(endDate) }
+            .map { (item, _) -> item }
     }
 
     private fun handleQueryErrors(

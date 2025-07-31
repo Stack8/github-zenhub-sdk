@@ -1,0 +1,5 @@
+mutation RemoveAssigneesFromIssues($input: RemoveAssigneesFromIssuesInput!) {
+    removeAssigneesFromIssues(input: $input) {
+        clientMutationId
+    }
+}
