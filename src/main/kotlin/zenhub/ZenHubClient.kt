@@ -6,8 +6,6 @@ import com.ziro.engineering.zenhub.graphql.sdk.*
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
-import kotlin.collections.toSet
-import kotlin.streams.toList
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import okhttp3.internal.closeQuietly
@@ -633,7 +631,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         labelIds: List<String>?
     ): List<SearchClosedIssuesQuery.Node> = runBlocking {
         val labels: Optional<StringInput?> =
-            if (labelIds == null || labelIds.isEmpty()) {
+            if (labelIds.isNullOrEmpty()) {
                 Optional.absent()
             } else {
                 Optional.present(StringInput(`in` = Optional.present(labelIds)))
@@ -662,6 +660,11 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         } while (hasNextPage && earliestClosedDate.isAfter(startTime))
 
         trimResults(results, startTime, endTime)
+    }
+
+    fun getCurrentUserId(): String = runBlocking {
+        val query = GetCurrentUserQuery()
+        apolloClient.query(query).toFlow().single().data?.viewer?.githubUser?.id.toString()
     }
 
     private fun searchClosedIssues(
