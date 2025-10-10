@@ -662,7 +662,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         trimResults(results, startTime, endTime)
     }
 
-    fun getCurrentUserId(): GetCurrentUserQuery.GithubUser? = runBlocking {
+    fun getCurrentUser(): GetCurrentUserQuery.GithubUser? = runBlocking {
         val query = GetCurrentUserQuery()
         apolloClient.query(query).toFlow().single().data?.viewer?.githubUser
     }
