@@ -56,9 +56,11 @@ fragment IssueFragment on Issue {
             }
         }
     }
-    pipelineIssue(workspaceId: "59c54eb49d9e774e473597f1") {
-        pipeline {
-            name
+    pipelineIssues {
+        nodes {
+            pipeline {
+                name
+            }
         }
     }
     parentIssue {
