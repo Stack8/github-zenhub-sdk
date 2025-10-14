@@ -74,4 +74,5 @@ fragment IssueFragment on Issue {
             description
         }
     }
+    state
 }
