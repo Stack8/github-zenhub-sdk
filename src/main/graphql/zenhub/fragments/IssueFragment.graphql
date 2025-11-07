@@ -36,26 +36,6 @@ fragment IssueFragment on Issue {
     }
     htmlUrl
     closedAt
-    # No need to get all pages as issues don't realistically have >100
-    connectedPrs(first: 5) {
-        nodes {
-            id
-            number
-            state
-            htmlUrl
-            pullRequestObject {
-                state
-            }
-            repository {
-                name
-            }
-            assignees {
-                nodes {
-                    login
-                }
-            }
-        }
-    }
     pipelineIssues {
         nodes {
             pipeline {
