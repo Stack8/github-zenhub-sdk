@@ -1,11 +1,15 @@
 package github
 
+import adapters.UriAdapter
 import com.apollographql.apollo3.ApolloClient
+import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
+import com.ziro.engineering.github.graphql.sdk.CreatePullRequestMutation
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
 import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
 import com.ziro.engineering.github.graphql.sdk.GetStatusesQuery
 import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
+import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
@@ -92,6 +96,31 @@ class GitHubClient : AutoCloseable {
             ?.onCommit
             ?.status
             ?.contexts ?: emptyList()
+    }
+
+    fun createPullRequest(
+        repoId: String,
+        title: String,
+        body: String,
+        baseBranch: String,
+        currBranch: String
+    ) = runBlocking {
+        val input =
+            CreatePullRequestInput(
+                clientMutationId = Optional.absent(),
+                repositoryId = repoId,
+                baseRefName = baseBranch,
+                headRefName = currBranch,
+                headRepositoryId = Optional.absent(),
+                title = title,
+                body = Optional.present(body),
+                maintainerCanModify = Optional.absent(),
+                draft = Optional.absent(),
+            )
+
+        val mutation = CreatePullRequestMutation(input)
+        val response = apolloClient.mutation(mutation).execute()
+        return@runBlocking response.data?.createPullRequest?.pullRequest
     }
 
     override fun close() {
