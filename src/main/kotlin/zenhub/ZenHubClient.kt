@@ -380,6 +380,105 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).toFlow().single().data?.createRelease
     }
 
+    fun getEpicsForRepository(githubRepoId: Int): Set<EpicData> {
+        val results = mutableSetOf<EpicData>()
+        var epicsEndCursor: String? = null
+        var hasNextPageOfEpics: Boolean
+
+        do {
+            val queryResults = getEpicsForRepository(githubRepoId, epicsEndCursor, null)
+            results.addAll(extractEpicData(githubRepoId, epicsEndCursor))
+
+            hasNextPageOfEpics = queryResults?.pageInfo?.hasNextPage ?: false
+            epicsEndCursor = queryResults?.pageInfo?.endCursor
+        } while (hasNextPageOfEpics)
+
+        return results
+    }
+
+    private fun extractEpicData(
+        githubRepoId: Int,
+        epicsEndCursor: String?,
+    ): Set<EpicData> {
+        val epicIdToChildIssueIds = mutableMapOf<String, MutableSet<String>>()
+        var hasNextPageOfChildIssues = false
+        var childIssuesEndCursor: String? = null
+        var queryResults: GetEpicsForRepositoriesQuery.Epics?
+
+        do {
+            queryResults = getEpicsForRepository(githubRepoId, epicsEndCursor, childIssuesEndCursor)
+            queryResults?.nodes?.forEach { epic ->
+                val childIssuesCollectedSoFar =
+                    epicIdToChildIssueIds.getOrDefault(epic.id, mutableSetOf())
+                childIssuesCollectedSoFar.addAll(epic.childIssues.nodes.map { node -> node.id })
+                epicIdToChildIssueIds[epic.id] = childIssuesCollectedSoFar
+
+                hasNextPageOfChildIssues =
+                    hasNextPageOfChildIssues || epic.childIssues.pageInfo.hasNextPage
+                if (epic.childIssues.pageInfo.hasNextPage) {
+                    childIssuesEndCursor = epic.childIssues.pageInfo.endCursor
+                }
+            }
+        } while (hasNextPageOfChildIssues)
+
+        return queryResults
+            ?.nodes
+            ?.map { epicNode ->
+                EpicData(
+                    epicNode.id,
+                    epicNode.issue.id,
+                    epicIdToChildIssueIds[epicNode.id]?.toSet() ?: emptySet())
+            }
+            ?.toSet() ?: emptySet()
+    }
+
+    private fun getEpicsForRepository(
+        githubRepoId: Int,
+        epicsEndCursor: String?,
+        childIssuesEndCursor: String?
+    ): GetEpicsForRepositoriesQuery.Epics? = runBlocking {
+        val query =
+            GetEpicsForRepositoriesQuery(
+                zenhubWorkspaceId,
+                Optional.present(listOf(githubRepoId)),
+                Optional.presentIfNotNull(epicsEndCursor),
+                Optional.presentIfNotNull(childIssuesEndCursor))
+        apolloClient.query(query).toFlow().single().data?.workspace?.epics
+    }
+
+    fun getEpicsByIds(epicIds: List<String>): List<EpicData> = runBlocking {
+        val epics = mutableListOf<EpicData>()
+        val numPages = epicIds.size / DEFAULT_PAGE_SIZE
+
+        for (i in 0..numPages) {
+            val query =
+                GetEpicsByIdsQuery(
+                    epicIds
+                        .stream()
+                        .skip(i * DEFAULT_PAGE_SIZE.toLong())
+                        .limit(DEFAULT_PAGE_SIZE.toLong())
+                        .toList())
+
+            val queryResult = apolloClient.query(query).toFlow().single()
+
+            if (queryResult.hasErrors()) {
+                handleQueryErrors(queryResult.errors!![0], epicIds)
+            }
+
+            val epicsInPage = queryResult.data?.nodes?.mapNotNull { it?.onEpic } ?: emptyList()
+
+            epics.addAll(
+                epicsInPage.map {
+                    EpicData(
+                        it.id,
+                        it.issue.id,
+                        it.childIssues.nodes.map { childIssue -> childIssue.id }.toSet())
+                })
+        }
+
+        epics
+    }
+
     fun getPipelines(): List<GetPipelinesQuery.Node> = runBlocking {
         val query = GetPipelinesQuery(zenhubWorkspaceId)
         apolloClient.query(query).toFlow().single().data?.workspace?.pipelinesConnection?.nodes
