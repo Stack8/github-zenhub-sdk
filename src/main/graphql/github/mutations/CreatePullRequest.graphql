@@ -1,18 +1,7 @@
 mutation CreatePullRequest($input: CreatePullRequestInput!) {
     createPullRequest(input: $input) {
         pullRequest {
-            id
             number
-            state
-            url
-            repository {
-                name
-            }
-            assignees(first: 5) {
-                nodes {
-                    login
-                }
-            }
         }
     }
 }

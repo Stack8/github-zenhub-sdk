@@ -98,7 +98,7 @@ class GitHubClient : AutoCloseable {
         body: String,
         baseBranch: String,
         currBranch: String
-    ) = runBlocking {
+    ): Int? = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -114,7 +114,7 @@ class GitHubClient : AutoCloseable {
 
         val mutation = CreatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-        return@runBlocking response.data?.createPullRequest?.pullRequest
+        return@runBlocking response.data?.createPullRequest?.pullRequest?.number
     }
 
     override fun close() {
