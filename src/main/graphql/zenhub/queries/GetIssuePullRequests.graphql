@@ -1,6 +1,6 @@
 query GetIssuePullRequests($issueId: ID!) {
     issues(ids: [$issueId]) {
-        # No need to get all pages as issues don't realistically have >100
+        # No need to get all pages as issues don't realistically have >5
         connectedPrs(first: 5) {
             nodes {
                 id
