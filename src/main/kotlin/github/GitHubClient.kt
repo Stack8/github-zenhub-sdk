@@ -1,14 +1,8 @@
 package github
 
-import adapters.UriAdapter
 import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
-import com.ziro.engineering.github.graphql.sdk.CreatePullRequestMutation
-import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
-import com.ziro.engineering.github.graphql.sdk.GetFileFromBranchQuery
-import com.ziro.engineering.github.graphql.sdk.GetStatusesQuery
-import com.ziro.engineering.github.graphql.sdk.RepositoryQuery
+import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import kotlin.math.min
 import kotlinx.coroutines.flow.single

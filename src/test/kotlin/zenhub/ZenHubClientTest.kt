@@ -19,7 +19,8 @@ class ZenHubClientTest {
     @Test
     fun whenIssueByInfoThenCorrectIssueIsReturned() {
         val issue =
-            zenHubClient.issueByInfo(DEFAULT_GITHUB_REPOSITORY_ID, DEFAULT_ZENHUB_REPOSITORY_ID, 18004)
+            zenHubClient.issueByInfo(
+                DEFAULT_GITHUB_REPOSITORY_ID, DEFAULT_ZENHUB_REPOSITORY_ID, 18004)
         assertEquals(18004, issue?.issueFragment?.number)
     }
 
