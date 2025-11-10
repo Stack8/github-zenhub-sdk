@@ -31,7 +31,11 @@ class UriAdapter : Adapter<URI> {
             return URI(reader.nextString()!!)
         }
 
-        fun toJson(writer: JsonWriter, customScalarAdapters: CustomScalarAdapters, value: URI) {
+        fun toJson(
+            writer: JsonWriter,
+            customScalarAdapters: CustomScalarAdapters,
+            value: URI
+        ) {
             writer.value(value.toString())
         }
     }
