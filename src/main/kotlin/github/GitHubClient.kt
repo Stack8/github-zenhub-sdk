@@ -1,8 +1,6 @@
 package github
 
-import adapters.UriAdapter
 import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.CustomScalarType
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.CreatePullRequestMutation
 import com.ziro.engineering.github.graphql.sdk.GetBranchLogHistoryQuery
@@ -99,7 +97,8 @@ class GitHubClient : AutoCloseable {
     }
 
     fun createPullRequest(
-        repoId: String,
+        issueRepoId: String,
+        pullRequestRepoId: String,
         title: String,
         body: String,
         baseBranch: String,
@@ -108,10 +107,10 @@ class GitHubClient : AutoCloseable {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
-                repositoryId = repoId,
+                repositoryId = issueRepoId,
                 baseRefName = baseBranch,
                 headRefName = currBranch,
-                headRepositoryId = Optional.absent(),
+                headRepositoryId = Optional.presentIfNotNull(pullRequestRepoId),
                 title = title,
                 body = Optional.present(body),
                 maintainerCanModify = Optional.absent(),
