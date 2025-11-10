@@ -8,7 +8,7 @@ mutation CreatePullRequest($input: CreatePullRequestInput!) {
             repository {
                 name
             }
-            assignees {
+            assignees(first: 5) {
                 nodes {
                     login
                 }
