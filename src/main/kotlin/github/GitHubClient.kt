@@ -4,6 +4,7 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
+import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
@@ -115,6 +116,12 @@ class GitHubClient : AutoCloseable {
         val mutation = CreatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
         return@runBlocking response.data?.createPullRequest?.pullRequest?.number
+    }
+
+    fun updatePullRequest(id: String, body: String) = runBlocking {
+        val input = UpdatePullRequestInput(pullRequestId = id, body = Optional.present(body))
+        val mutation = UpdatePullRequestMutation(input)
+        apolloClient.mutation(mutation).execute()
     }
 
     override fun close() {
