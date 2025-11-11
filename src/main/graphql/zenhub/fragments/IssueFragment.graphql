@@ -1,5 +1,6 @@
 fragment IssueFragment on Issue {
     id
+    ghNodeId
     title
     number
     assignees {
