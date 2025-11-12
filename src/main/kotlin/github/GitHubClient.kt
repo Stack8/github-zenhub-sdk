@@ -119,10 +119,12 @@ class GitHubClient : AutoCloseable {
         return@runBlocking response.data?.createPullRequest?.pullRequest?.number
     }
 
-    fun updatePullRequest(id: String, body: String, state: PullRequestUpdateState) = runBlocking {
-        val input =
-            UpdatePullRequestInput(
-                pullRequestId = id, body = Optional.present(body), state = Optional.present(state))
+    fun updatePullRequest(
+        id: String,
+        body: Optional<String>,
+        state: Optional<PullRequestUpdateState>
+    ) = runBlocking {
+        val input = UpdatePullRequestInput(pullRequestId = id, body = body, state = state)
         val mutation = UpdatePullRequestMutation(input)
         apolloClient.mutation(mutation).execute()
     }
