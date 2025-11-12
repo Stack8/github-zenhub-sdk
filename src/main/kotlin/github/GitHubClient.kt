@@ -126,7 +126,11 @@ class GitHubClient : AutoCloseable {
                 body = Optional.presentIfNotNull(body),
                 state = Optional.presentIfNotNull(state))
         val mutation = UpdatePullRequestMutation(input)
-        apolloClient.mutation(mutation).execute()
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            throw RuntimeException("GraphQL errors: ${response.errors}")
+        }
     }
 
     override fun close() {
