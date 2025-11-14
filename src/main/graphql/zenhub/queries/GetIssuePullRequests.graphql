@@ -4,20 +4,6 @@ query GetIssuePullRequests($issueId: ID!) {
         connectedPrs(first: 5) {
             nodes {
                 id
-                number
-                state
-                htmlUrl
-                pullRequestObject {
-                    state
-                }
-                repository {
-                    name
-                }
-                assignees {
-                    nodes {
-                        login
-                    }
-                }
             }
         }
     }

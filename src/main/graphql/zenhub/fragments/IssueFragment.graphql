@@ -56,4 +56,9 @@ fragment IssueFragment on Issue {
         }
     }
     state
+    connectedPrs {
+        nodes {
+            id
+        }
+    }
 }

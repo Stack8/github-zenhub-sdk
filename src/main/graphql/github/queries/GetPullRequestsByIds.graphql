@@ -1,0 +1,7 @@
+query GetPullRequestsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+        ... on PullRequest {
+            ...PullRequestFragment
+        }
+    }
+}

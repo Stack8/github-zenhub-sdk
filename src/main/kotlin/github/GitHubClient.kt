@@ -6,6 +6,7 @@ import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
+import java.net.URI
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
@@ -96,11 +97,11 @@ class GitHubClient : AutoCloseable {
 
     fun createPullRequest(
         repoId: String,
-        title: String,
-        body: String,
         baseBranch: String,
-        currBranch: String
-    ): Int? = runBlocking {
+        currBranch: String,
+        title: String,
+        body: String?,
+    ) = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -116,21 +117,49 @@ class GitHubClient : AutoCloseable {
 
         val mutation = CreatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-        return@runBlocking response.data?.createPullRequest?.pullRequest?.number
+        return@runBlocking response.data?.createPullRequest?.pullRequest?.pullRequestFragment
     }
 
-    fun updatePullRequest(id: String, body: String, state: PullRequestUpdateState) = runBlocking {
+    fun getPullRequestById(id: String) = runBlocking {
+        val query = GetPullRequestsByIdsQuery(listOf(id))
+        val nodes = apolloClient.query(query).toFlow().single().data?.nodes
+
+        if (nodes.isNullOrEmpty()) {
+            null
+        } else {
+            nodes[0]?.onPullRequest?.pullRequestFragment
+        }
+    }
+
+    fun getPullRequestsByIds(ids: Set<String>) = runBlocking {
+        val query = GetPullRequestsByIdsQuery(ids.toList())
+        apolloClient.query(query).toFlow().single().data?.nodes?.map {
+            it?.onPullRequest?.pullRequestFragment
+        }
+    }
+
+    fun getPullRequestByUrl(url: URI) = runBlocking {
+        val query = GetPullRequestByUrlQuery(url)
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.resource
+            ?.onPullRequest
+            ?.pullRequestFragment
+    }
+
+    fun updatePullRequest(id: String, body: String?, state: PullRequestUpdateState?) = runBlocking {
         val input =
             UpdatePullRequestInput(
                 pullRequestId = id,
                 body = Optional.presentIfNotNull(body),
                 state = Optional.presentIfNotNull(state))
+
         val mutation = UpdatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-
-        if (response.hasErrors()) {
-            throw RuntimeException("GraphQL errors: ${response.errors}")
-        }
+        return@runBlocking response.data?.updatePullRequest?.pullRequest?.pullRequestFragment
     }
 
     override fun close() {
