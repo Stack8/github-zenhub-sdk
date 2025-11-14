@@ -355,12 +355,6 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.query(query).toFlow().single().data?.issueByInfo?.timelineItems
     }
 
-    fun getIssuePullRequests(issueId: String): GetIssuePullRequestsQuery.ConnectedPrs? =
-        runBlocking {
-            val query = GetIssuePullRequestsQuery(issueId)
-            apolloClient.query(query).toFlow().single().data?.issues?.get(0)?.connectedPrs
-        }
-
     fun createRelease(
         githubRepoId: Int,
         title: String,
