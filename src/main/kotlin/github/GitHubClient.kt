@@ -14,8 +14,8 @@ import okhttp3.internal.closeQuietly
 
 const val MAX_COMMITS_IN_PAGE = 100
 
-private const val DEFAULT_GITHUB_REPOSITORY_NAME = "smacs"
-private const val DEFAULT_GITHUB_REPOSITORY_OWNER = "stack8"
+private const val DEFAULT_REPOSITORY_NAME = "smacs"
+private const val DEFAULT_REPOSITORY_OWNER = "stack8"
 private const val GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
 class GitHubClient : AutoCloseable {
@@ -27,16 +27,16 @@ class GitHubClient : AutoCloseable {
             .build()
 
     fun getRepository(
-        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
-        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER
+        repoName: String = DEFAULT_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER
     ): RepositoryQuery.Repository? = runBlocking {
         val query = RepositoryQuery(repoName, repoOwner)
         apolloClient.query(query).toFlow().single().data?.repository
     }
 
     fun getFileFromBranch(
-        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
-        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_REPOSITORY_NAME,
         branch: String,
         filePath: String,
     ): String? = runBlocking {
@@ -45,8 +45,8 @@ class GitHubClient : AutoCloseable {
     }
 
     fun getCommits(
-        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
-        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_REPOSITORY_NAME,
         branch: String,
         numCommits: Int
     ): List<String> = runBlocking {
@@ -78,8 +78,8 @@ class GitHubClient : AutoCloseable {
     }
 
     fun getStatuses(
-        repoOwner: String = DEFAULT_GITHUB_REPOSITORY_OWNER,
-        repoName: String = DEFAULT_GITHUB_REPOSITORY_NAME,
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_REPOSITORY_NAME,
         gitReference: String
     ): List<GetStatusesQuery.Context> = runBlocking {
         val query = GetStatusesQuery(repoOwner, repoName, gitReference)
