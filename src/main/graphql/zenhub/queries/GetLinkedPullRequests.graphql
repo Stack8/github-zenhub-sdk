@@ -1,0 +1,7 @@
+query GetLinkedPullRequests($ids: [ID!]!) {
+    nodes(ids: $ids) {
+        ... on Issue {
+            ghNodeId
+        }
+    }
+}

@@ -26,5 +26,13 @@ class UriAdapter : Adapter<URI> {
         fun nullable(): NullableAdapter<URI> {
             return NullableAdapter(wrappedAdapter = UriAdapter())
         }
+
+        fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): URI {
+            return URI(reader.nextString()!!)
+        }
+
+        fun toJson(writer: JsonWriter, customScalarAdapters: CustomScalarAdapters, value: URI) {
+            writer.value(value.toString())
+        }
     }
 }

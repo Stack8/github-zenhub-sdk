@@ -1,0 +1,7 @@
+query GetPullRequestByUrl($url: URI!) {
+    resource(url: $url) {
+        ... on PullRequest {
+            ...PullRequestFragment
+        }
+    }
+}

@@ -1,0 +1,18 @@
+fragment PullRequestFragment on PullRequest {
+    assignees(first: 5) {
+        nodes {
+            login
+        }
+    }
+    baseRefName
+    body
+    headRefName
+    id
+    number
+    repository {
+        name
+    }
+    state
+    title
+    url
+}

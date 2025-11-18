@@ -12,7 +12,7 @@ import okhttp3.internal.closeQuietly
 
 /** Default GitHub Repository ID - references the SMACS repository. */
 const val DEFAULT_GITHUB_REPOSITORY_ID: Int = 15617306
-const val DEFAULT_GIT_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
+const val DEFAULT_ZENHUB_REPOSITORY_ID: String = "Z2lkOi8vcmFwdG9yL1JlcG9zaXRvcnkvMjEwNTg"
 
 /** Default Workspace ID - references the "Engineering Team" workspace. */
 private const val DEFAULT_WORKSPACE_ID = "59c54eb49d9e774e473597f1"
@@ -665,6 +665,13 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     fun getCurrentUser(): GetCurrentUserQuery.GithubUser? = runBlocking {
         val query = GetCurrentUserQuery()
         apolloClient.query(query).toFlow().single().data?.viewer?.githubUser
+    }
+
+    fun getLinkedPullRequests(linkIds: Set<String>): List<String>? = runBlocking {
+        val query = GetLinkedPullRequestsQuery(linkIds.toList())
+        apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
+            node?.onIssue?.ghNodeId
+        }
     }
 
     private fun searchClosedIssues(
