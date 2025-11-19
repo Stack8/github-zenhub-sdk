@@ -47,6 +47,7 @@ fragment IssueFragment on Issue {
     state
     connectedPrs {
         nodes {
+            id
             repository {
                 name
             }
