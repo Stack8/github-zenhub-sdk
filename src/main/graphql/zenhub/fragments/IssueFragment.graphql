@@ -47,7 +47,9 @@ fragment IssueFragment on Issue {
     state
     connectedPrs {
         nodes {
-            id
+            repository {
+                name
+            }
             htmlUrl
             assignees(first: 5) {
                 nodes {
