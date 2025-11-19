@@ -1,6 +1,5 @@
 fragment IssueFragment on Issue {
     id
-    ghNodeId
     title
     number
     assignees {
@@ -12,22 +11,12 @@ fragment IssueFragment on Issue {
     estimate {
         value
     }
-    # No need to get all pages as issues don't realistically have >100
-    labels(first: 100) {
+    # No need to get all pages as issues don't realistically have >20
+    labels(first: 20) {
         totalCount
         nodes {
             name
             color
-        }
-    }
-    # No need to get all sprints as >100 is unrealistic
-    sprints {
-        nodes {
-            id
-            name
-            startAt
-            endAt
-            state
         }
     }
     releases(first: 1) {
@@ -59,6 +48,12 @@ fragment IssueFragment on Issue {
     connectedPrs {
         nodes {
             id
+            htmlUrl
+            assignees(first: 5) {
+                nodes {
+                    login
+                }
+            }
         }
     }
 }
