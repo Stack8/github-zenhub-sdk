@@ -3,6 +3,7 @@ package github
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
+import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
@@ -101,7 +102,7 @@ class GitHubClient : AutoCloseable {
         currBranch: String,
         title: String,
         body: String?,
-    ) = runBlocking {
+    ): Result<PullRequestFragment> = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -117,7 +118,20 @@ class GitHubClient : AutoCloseable {
 
         val mutation = CreatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-        return@runBlocking response.data?.createPullRequest?.pullRequest?.pullRequestFragment
+
+        if (response.hasErrors()) {
+            val exception = Exception(response.errors?.joinToString { it.message })
+            Result.failure<PullRequestFragment>(exception)
+        }
+
+        val pullRequestFragment = response.data?.createPullRequest?.pullRequest?.pullRequestFragment
+
+        if (pullRequestFragment == null) {
+            val exception = Exception("Pull request fragment is null")
+            Result.failure<PullRequestFragment>(exception)
+        }
+
+        Result.success(pullRequestFragment!!)
     }
 
     fun getPullRequestById(id: String) = runBlocking {
