@@ -102,7 +102,7 @@ class GitHubClient : AutoCloseable {
         currBranch: String,
         title: String,
         body: String?,
-    ): Result<PullRequestFragment> = runBlocking {
+    ) = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -121,17 +121,17 @@ class GitHubClient : AutoCloseable {
 
         if (response.hasErrors()) {
             val exception = Exception(response.errors?.joinToString { it.message })
-            Result.failure<PullRequestFragment>(exception)
+            throw IllegalStateException(exception)
         }
 
         val pullRequestFragment = response.data?.createPullRequest?.pullRequest?.pullRequestFragment
 
         if (pullRequestFragment == null) {
             val exception = Exception("Pull request fragment is null")
-            Result.failure<PullRequestFragment>(exception)
+            throw IllegalStateException(exception)
         }
 
-        Result.success(pullRequestFragment!!)
+        pullRequestFragment
     }
 
     fun getPullRequestById(id: String) = runBlocking {
