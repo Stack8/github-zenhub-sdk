@@ -3,6 +3,7 @@ package zenhub
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.zenhub.graphql.sdk.*
+import com.ziro.engineering.zenhub.graphql.sdk.fragment.IssueFragment
 import com.ziro.engineering.zenhub.graphql.sdk.type.*
 import java.time.Instant
 import java.time.LocalDate
@@ -672,6 +673,25 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
             node?.onIssue?.ghNodeId
         }
+    }
+
+    fun createIssue(
+        assignees: List<String>?,
+        body: String?,
+        labels: List<String>?,
+        repoId: String,
+        title: String
+    ): IssueFragment? = runBlocking {
+        val input =
+            CreateIssueInput(
+                assignees = Optional.presentIfNotNull(assignees),
+                body = Optional.presentIfNotNull(body),
+                labels = Optional.presentIfNotNull(labels),
+                repositoryId = repoId,
+                title = title)
+
+        val query = CreateIssueMutation(input)
+        apolloClient.mutation(query).toFlow().single().data?.createIssue?.issue?.issueFragment
     }
 
     private fun searchClosedIssues(
