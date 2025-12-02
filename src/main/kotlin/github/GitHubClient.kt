@@ -3,7 +3,6 @@ package github
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
-import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
