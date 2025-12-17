@@ -163,7 +163,12 @@ class GitHubClient : AutoCloseable {
             ?.pullRequestFragment
     }
 
-    fun updatePullRequest(id: String, baseBranch: String?, body: String?, state: PullRequestUpdateState?) = runBlocking {
+    fun updatePullRequest(
+        id: String,
+        baseBranch: String?,
+        body: String?,
+        state: PullRequestUpdateState?
+    ) = runBlocking {
         val input =
             UpdatePullRequestInput(
                 pullRequestId = id,
