@@ -668,11 +668,20 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.query(query).toFlow().single().data?.viewer?.githubUser
     }
 
-    fun getLinkedPullRequests(linkIds: Set<String>): List<String>? = runBlocking {
+    fun getPullRequestGitHubIdsFromLinkIds(linkIds: Set<String>) = runBlocking {
         val query = GetLinkedPullRequestsQuery(linkIds.toList())
+
         apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
             node?.onIssue?.ghNodeId
-        }
+        }?.toSet()
+    }
+
+    fun getPullRequestZenHubIdsFromLinkIds(linkIds: Set<String>) = runBlocking {
+        val query = GetLinkedPullRequestsQuery(linkIds.toList())
+
+        apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
+            node?.onIssue?.id
+        }?.toSet()
     }
 
     fun createIssue(
