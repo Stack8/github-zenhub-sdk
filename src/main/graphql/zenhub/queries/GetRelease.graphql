@@ -9,6 +9,7 @@ query GetRelease($releaseId: ID!, $endCursor: String) {
             issues(first: 100, after: $endCursor) {
                 nodes {
                     id
+                    pullRequest
                 }
                 pageInfo {
                     hasNextPage

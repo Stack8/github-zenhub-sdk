@@ -229,7 +229,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(mutation).toFlow().single().data?.closeIssues
     }
 
-    fun getRelease(releaseId: String): Release? {
+    fun getRelease(releaseId: String, pullRequestsOnly: Boolean): Release? {
         var queryResult: GetReleaseQuery.OnRelease?
         val releaseIssueIds = mutableSetOf<String>()
         var endCursor: String? = null
@@ -237,9 +237,15 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
 
         do {
             queryResult = getRelease(releaseId, endCursor)
-            val pageIssues = queryResult?.issues?.nodes?.map { issue -> issue.id } ?: emptyList()
-            releaseIssueIds.addAll(pageIssues)
 
+            val pageIssues =
+                queryResult
+                    ?.issues
+                    ?.nodes
+                    ?.filter { node -> !pullRequestsOnly || node.pullRequest }
+                    ?.map { node -> node.id } ?: emptyList()
+
+            releaseIssueIds.addAll(pageIssues)
             hasNextPage = queryResult?.issues?.pageInfo?.hasNextPage ?: false
             endCursor = queryResult?.issues?.pageInfo?.endCursor
         } while (hasNextPage)
@@ -290,7 +296,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
 
         for (release in releases) {
             if (release.title == title) {
-                return@runBlocking getRelease(release.id)
+                return@runBlocking getRelease(release.id, false)
             }
         }
 
@@ -581,7 +587,7 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
             return@runBlocking null
         }
 
-        getRelease(issue.issueFragment.releases.nodes[0].id)
+        getRelease(issue.issueFragment.releases.nodes[0].id, false)
     }
 
     override fun close() {
@@ -671,17 +677,27 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     fun getPullRequestGitHubIdsFromLinkIds(linkIds: Set<String>) = runBlocking {
         val query = GetLinkedPullRequestsQuery(linkIds.toList())
 
-        apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
-            node?.onIssue?.ghNodeId
-        }?.toSet()
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.nodes
+            ?.mapNotNull { node -> node?.onIssue?.ghNodeId }
+            ?.toSet()
     }
 
     fun getPullRequestZenHubIdsFromLinkIds(linkIds: Set<String>) = runBlocking {
         val query = GetLinkedPullRequestsQuery(linkIds.toList())
 
-        apolloClient.query(query).toFlow().single().data?.nodes?.mapNotNull { node ->
-            node?.onIssue?.id
-        }?.toSet()
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.nodes
+            ?.mapNotNull { node -> node?.onIssue?.id }
+            ?.toSet()
     }
 
     fun createIssue(
