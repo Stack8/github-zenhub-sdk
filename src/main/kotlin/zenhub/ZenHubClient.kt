@@ -243,7 +243,15 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
                     ?.issues
                     ?.nodes
                     ?.filter { node -> !pullRequestsOnly || node.pullRequest }
-                    ?.map { node -> node.id } ?: emptyList()
+                    ?.map { node ->
+                        if (pullRequestsOnly) {
+                            requireNotNull(node.ghNodeId) {
+                                "ghNodeId is null for node id=${node.id}"
+                            }
+                        } else {
+                            node.id
+                        }
+                    } ?: emptyList()
 
             releaseIssueIds.addAll(pageIssues)
             hasNextPage = queryResult?.issues?.pageInfo?.hasNextPage ?: false
