@@ -316,21 +316,27 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         throw IllegalArgumentException("Release with title $title not found")
     }
 
-    fun addIssuesToRelease(
-        issueIds: Set<String>,
-        releaseId: String
-    ): AddIssuesToReleasesMutation.Release? = runBlocking {
+    fun addIssuesToRelease(issueIds: Set<String>, releaseId: String): Release = runBlocking {
         val input =
             AddIssuesToReleasesInput(Optional.absent(), issueIds.toList(), listOf(releaseId))
         val mutation = AddIssuesToReleasesMutation(input)
-        apolloClient
-            .mutation(mutation)
-            .toFlow()
-            .single()
-            .data
-            ?.addIssuesToReleases
-            ?.releases
-            ?.get(0)
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            val exception = Exception(response.errors?.joinToString { it.message })
+            throw IllegalStateException(exception)
+        }
+
+        val releaseId =
+            response.data?.addIssuesToReleases?.releases?.get(0)?.id
+                ?: throw IllegalStateException("Mutation response has null release ID")
+
+        val release =
+            getRelease(releaseId, false)
+                ?: throw IllegalStateException(
+                    "Unable to retrieve release with ID $releaseId. This should never happen because the mutation was successful!")
+
+        release
     }
 
     fun removeIssuesFromRelease(
