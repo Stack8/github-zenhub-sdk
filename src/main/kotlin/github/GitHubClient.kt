@@ -178,7 +178,20 @@ class GitHubClient : AutoCloseable {
 
         val mutation = UpdatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-        return@runBlocking response.data?.updatePullRequest?.pullRequest?.pullRequestFragment
+
+        if (response.hasErrors()) {
+            val exception = Exception(response.errors?.joinToString { it.message })
+            throw IllegalStateException(exception)
+        }
+
+        val pullRequestFragment = response.data?.updatePullRequest?.pullRequest?.pullRequestFragment
+
+        if (pullRequestFragment == null) {
+            val exception = Exception("Pull request fragment is null")
+            throw IllegalStateException(exception)
+        }
+
+        pullRequestFragment
     }
 
     override fun close() {
