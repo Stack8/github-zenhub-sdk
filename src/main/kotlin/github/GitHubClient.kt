@@ -3,6 +3,7 @@ package github
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
+import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
@@ -101,7 +102,7 @@ class GitHubClient : AutoCloseable {
         currBranch: String,
         title: String,
         body: String?,
-    ) = runBlocking {
+    ): PullRequestFragment = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -168,7 +169,7 @@ class GitHubClient : AutoCloseable {
         baseBranch: String?,
         body: String?,
         state: PullRequestUpdateState?
-    ) = runBlocking {
+    ): PullRequestFragment = runBlocking {
         val input =
             UpdatePullRequestInput(
                 pullRequestId = id,
