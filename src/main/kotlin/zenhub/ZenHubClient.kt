@@ -339,21 +339,27 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         release
     }
 
-    fun removeIssuesFromRelease(
-        issueIds: Set<String>,
-        releaseId: String
-    ): RemoveIssuesFromReleasesMutation.Release? = runBlocking {
+    fun removeIssuesFromRelease(issueIds: Set<String>, releaseId: String): Release = runBlocking {
         val input =
             RemoveIssuesFromReleasesInput(Optional.absent(), issueIds.toList(), listOf(releaseId))
         val mutation = RemoveIssuesFromReleasesMutation(input)
-        apolloClient
-            .mutation(mutation)
-            .toFlow()
-            .single()
-            .data
-            ?.removeIssuesFromReleases
-            ?.releases
-            ?.get(0)
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            val exception = Exception(response.errors?.joinToString { it.message })
+            throw IllegalStateException(exception)
+        }
+
+        val releaseId =
+            response.data?.removeIssuesFromReleases?.releases?.get(0)?.id
+                ?: throw IllegalStateException("Mutation response has null release ID")
+
+        val release =
+            getRelease(releaseId, false)
+                ?: throw IllegalStateException(
+                    "Unable to retrieve release with ID $releaseId. This should never happen because the mutation was successful!")
+
+        release
     }
 
     fun getIssueEvents(githubRepoId: Int, issueNumber: Int): ArrayList<GetIssueEventsQuery.Node> {
