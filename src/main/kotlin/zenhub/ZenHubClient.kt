@@ -242,7 +242,12 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
                 queryResult
                     ?.issues
                     ?.nodes
-                    ?.filter { node -> !pullRequestsOnly || node.pullRequest }
+                    ?.filter { node ->
+                        !pullRequestsOnly ||
+                            (node.pullRequest &&
+                                node.pullRequestObject?.state?.equals(PullRequestState.OPEN) ==
+                                    true)
+                    }
                     ?.map { node ->
                         if (pullRequestsOnly) {
                             requireNotNull(node.ghNodeId) {

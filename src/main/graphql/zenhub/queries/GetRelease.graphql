@@ -11,6 +11,9 @@ query GetRelease($releaseId: ID!, $endCursor: String) {
                     id
                     ghNodeId
                     pullRequest
+                    pullRequestObject {
+                        state
+                    }
                 }
                 pageInfo {
                     hasNextPage
