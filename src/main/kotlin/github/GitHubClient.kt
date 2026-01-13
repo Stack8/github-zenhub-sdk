@@ -3,6 +3,7 @@ package github
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
+import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
@@ -101,7 +102,7 @@ class GitHubClient : AutoCloseable {
         currBranch: String,
         title: String,
         body: String?,
-    ) = runBlocking {
+    ): PullRequestFragment = runBlocking {
         val input =
             CreatePullRequestInput(
                 clientMutationId = Optional.absent(),
@@ -163,16 +164,35 @@ class GitHubClient : AutoCloseable {
             ?.pullRequestFragment
     }
 
-    fun updatePullRequest(id: String, body: String?, state: PullRequestUpdateState?) = runBlocking {
+    fun updatePullRequest(
+        id: String,
+        baseBranch: String?,
+        body: String?,
+        state: PullRequestUpdateState?
+    ): PullRequestFragment = runBlocking {
         val input =
             UpdatePullRequestInput(
                 pullRequestId = id,
+                baseRefName = Optional.presentIfNotNull(baseBranch),
                 body = Optional.presentIfNotNull(body),
                 state = Optional.presentIfNotNull(state))
 
         val mutation = UpdatePullRequestMutation(input)
         val response = apolloClient.mutation(mutation).execute()
-        return@runBlocking response.data?.updatePullRequest?.pullRequest?.pullRequestFragment
+
+        if (response.hasErrors()) {
+            val exception = Exception(response.errors?.joinToString { it.message })
+            throw IllegalStateException(exception)
+        }
+
+        val pullRequestFragment = response.data?.updatePullRequest?.pullRequest?.pullRequestFragment
+
+        if (pullRequestFragment == null) {
+            val exception = Exception("Pull request fragment is null")
+            throw IllegalStateException(exception)
+        }
+
+        pullRequestFragment
     }
 
     override fun close() {
