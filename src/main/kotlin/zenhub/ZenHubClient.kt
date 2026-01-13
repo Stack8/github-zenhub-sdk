@@ -536,13 +536,27 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
     fun createIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
         val input = CreateIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
         val mutation = CreateIssuePrConnectionMutation(input)
-        apolloClient.mutation(mutation).execute()
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            val message = response.errors!!.joinToString { it.message }
+            throw RuntimeException("GraphQL request failed: $message")
+        }
+
+        response.data ?: throw IllegalStateException("GraphQL returned no data and no errors")
     }
 
     fun deleteIssuePrConnection(issueId: String, pullRequestID: String) = runBlocking {
         val input = DeleteIssuePrConnectionInput(Optional.absent(), issueId, pullRequestID)
         val mutation = DeleteIssuePrConnectionMutation(input)
-        apolloClient.mutation(mutation).execute()
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            val message = response.errors!!.joinToString { it.message }
+            throw RuntimeException("GraphQL request failed: $message")
+        }
+
+        response.data ?: throw IllegalStateException("GraphQL returned no data and no errors")
     }
 
     fun addAssigneesToIssues(issueIds: List<String>, assigneeIds: List<String>) = runBlocking {
