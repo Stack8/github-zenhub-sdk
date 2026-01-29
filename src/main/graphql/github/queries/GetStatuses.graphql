@@ -7,6 +7,7 @@ query GetStatuses($owner: String!, $repo: String!, $gitReference: String!) {
                         creator {
                             login
                         }
+                        description
                         state
                         targetUrl
                     }
