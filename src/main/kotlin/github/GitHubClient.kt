@@ -4,11 +4,9 @@ import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
-import com.ziro.engineering.github.graphql.sdk.type.AddPullRequestReviewInput
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.MergePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestMergeMethod
-import com.ziro.engineering.github.graphql.sdk.type.PullRequestReviewEvent
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
 import java.net.URI
@@ -237,19 +235,6 @@ class GitHubClient : AutoCloseable {
                 pullRequestId = id)
 
         val mutation = MergePullRequestMutation(input)
-        val response = apolloClient.mutation(mutation).execute()
-
-        if (response.hasErrors()) {
-            throw RuntimeException(response.errors?.joinToString(separator = "\n") { it.message })
-        }
-    }
-
-    fun addPullRequestReview(pullRequestId: String, event: PullRequestReviewEvent?) = runBlocking {
-        val input =
-            AddPullRequestReviewInput(
-                pullRequestId = pullRequestId, event = Optional.presentIfNotNull(event))
-
-        val mutation = AddPullRequestReviewMutation(input)
         val response = apolloClient.mutation(mutation).execute()
 
         if (response.hasErrors()) {
