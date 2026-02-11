@@ -101,11 +101,9 @@ class GitHubClient : AutoCloseable {
     fun getChecks(
         repoOwner: String = DEFAULT_REPOSITORY_OWNER,
         repoName: String = DEFAULT_REPOSITORY_NAME,
-        gitReference: String,
-        checkSuiteName: String,
-        checkRunName: String
+        gitReference: String
     ): List<GetChecksQuery.Node1> = runBlocking {
-        val query = GetChecksQuery(repoOwner, repoName, gitReference, checkSuiteName, checkRunName)
+        val query = GetChecksQuery(repoOwner, repoName, gitReference)
 
         apolloClient
             .query(query)
