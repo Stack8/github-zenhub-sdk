@@ -115,9 +115,7 @@ class GitHubClient : AutoCloseable {
             ?.onCommit
             ?.checkSuites
             ?.nodes
-            ?.first()
-            ?.checkRuns
-            ?.nodes
+            ?.flatMap { checkSuite -> checkSuite?.checkRuns?.nodes.orEmpty() }
             ?.filterNotNull()
             .orEmpty()
     }
