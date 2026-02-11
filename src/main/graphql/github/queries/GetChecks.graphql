@@ -1,10 +1,10 @@
-query GetChecks($owner: String!, $repo: String!, $gitReference: String!) {
+query GetChecks($owner: String!, $repo: String!, $gitReference: String!, $checkSuiteName: String!, $checkRunName: String!) {
     repository(owner: $owner, name: $repo) {
         object(expression: $gitReference) {
             ... on Commit {
-                checkSuites(first: 5, filterBy: {checkName: "SonarQubeCloud"}) {
+                checkSuites(first: 5, filterBy: {checkName: $checkSuiteName}) {
                     nodes {
-                        checkRuns(first: 3, filterBy: {checkName: "SonarCloud Code Analysis"}) {
+                        checkRuns(first: 3, filterBy: {checkName: $checkRunName}) {
                             nodes {
                                 name
                                 conclusion
