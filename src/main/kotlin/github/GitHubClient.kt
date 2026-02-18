@@ -5,6 +5,8 @@ import com.apollographql.apollo3.api.Optional
 import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
+import com.ziro.engineering.github.graphql.sdk.type.MergePullRequestInput
+import com.ziro.engineering.github.graphql.sdk.type.PullRequestMergeMethod
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
 import java.net.URI
@@ -94,6 +96,28 @@ class GitHubClient : AutoCloseable {
             ?.onCommit
             ?.status
             ?.contexts ?: emptyList()
+    }
+
+    fun getChecks(
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_REPOSITORY_NAME,
+        gitReference: String
+    ): List<GetChecksQuery.Node1> = runBlocking {
+        val query = GetChecksQuery(repoOwner, repoName, gitReference)
+
+        apolloClient
+            .query(query)
+            .toFlow()
+            .single()
+            .data
+            ?.repository
+            ?.`object`
+            ?.onCommit
+            ?.checkSuites
+            ?.nodes
+            ?.flatMap { checkSuite -> checkSuite?.checkRuns?.nodes.orEmpty() }
+            ?.filterNotNull()
+            .orEmpty()
     }
 
     fun createPullRequest(
@@ -193,6 +217,27 @@ class GitHubClient : AutoCloseable {
         }
 
         pullRequestFragment
+    }
+
+    fun mergePullRequest(
+        id: String,
+        commitTitle: String?,
+        expectedHeadOid: String?,
+        mergeMethod: PullRequestMergeMethod
+    ) = runBlocking {
+        val input =
+            MergePullRequestInput(
+                commitHeadline = Optional.presentIfNotNull(commitTitle),
+                expectedHeadOid = Optional.presentIfNotNull(expectedHeadOid),
+                mergeMethod = Optional.present(mergeMethod),
+                pullRequestId = id)
+
+        val mutation = MergePullRequestMutation(input)
+        val response = apolloClient.mutation(mutation).execute()
+
+        if (response.hasErrors()) {
+            throw RuntimeException(response.errors?.joinToString(separator = "\n") { it.message })
+        }
     }
 
     override fun close() {

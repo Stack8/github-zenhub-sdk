@@ -12,6 +12,11 @@ fragment PullRequestFragment on PullRequest {
     repository {
         name
     }
+    reviews(last: 1) {
+        nodes {
+            state
+        }
+    }
     state
     title
     url

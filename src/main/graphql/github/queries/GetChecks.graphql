@@ -1,0 +1,18 @@
+query GetChecks($owner: String!, $repo: String!, $gitReference: String!) {
+    repository(owner: $owner, name: $repo) {
+        object(expression: $gitReference) {
+            ... on Commit {
+                checkSuites(first: 5) {
+                    nodes {
+                        checkRuns(first: 10) {
+                            nodes {
+                                name
+                                conclusion
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
