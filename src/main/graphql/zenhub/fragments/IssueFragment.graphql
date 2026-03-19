@@ -25,6 +25,7 @@ fragment IssueFragment on Issue {
         }
     }
     htmlUrl
+    createdAt
     closedAt
     pipelineIssues {
         nodes {
