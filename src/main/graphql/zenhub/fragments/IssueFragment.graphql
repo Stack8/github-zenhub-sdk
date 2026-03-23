@@ -25,6 +25,12 @@ fragment IssueFragment on Issue {
         }
     }
     htmlUrl
+    repository {
+        id
+        ghId
+        ownerName
+        name
+    }
     createdAt
     closedAt
     pipelineIssues {
