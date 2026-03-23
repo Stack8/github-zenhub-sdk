@@ -758,6 +758,12 @@ class ZenHubClient(val zenhubWorkspaceId: String = DEFAULT_WORKSPACE_ID) : AutoC
         apolloClient.mutation(query).toFlow().single().data?.createIssue?.issue?.issueFragment
     }
 
+    fun mapIssueIdsToHasRelease(issueIds: Set<String>): Map<String, Boolean> = runBlocking {
+        val query = GetIssuesWithReleaseQuery(issueIds.toList())
+        val issues = apolloClient.query(query).toFlow().single().data?.issues ?: emptyList()
+        issues.associate { issue -> issue.id to issue.releases.nodes.isNotEmpty() }
+    }
+
     private fun searchClosedIssues(
         filters: IssueSearchFiltersInput,
         after: String?

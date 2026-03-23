@@ -1,0 +1,10 @@
+query GetIssuesWithRelease($issueIds: [ID!]!) {
+    issues(ids: $issueIds) {
+        id
+        releases(first: 1) {
+            nodes {
+                id
+            }
+        }
+    }
+}
