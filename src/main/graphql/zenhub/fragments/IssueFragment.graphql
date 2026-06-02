@@ -37,6 +37,9 @@ fragment IssueFragment on Issue {
         nodes {
             pipeline {
                 name
+                workspace {
+                    displayName
+                }
             }
         }
     }
