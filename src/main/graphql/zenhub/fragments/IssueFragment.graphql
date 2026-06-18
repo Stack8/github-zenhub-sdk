@@ -38,6 +38,7 @@ fragment IssueFragment on Issue {
             pipeline {
                 name
                 workspace {
+                    id
                     displayName
                 }
             }
