@@ -12,6 +12,7 @@ fragment PullRequestFragment on PullRequest {
     repository {
         name
     }
+    reviewDecision
     reviews(last: 1) {
         nodes {
             state
