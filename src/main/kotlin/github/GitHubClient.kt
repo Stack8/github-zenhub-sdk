@@ -1,7 +1,9 @@
 package github
 
+import adapters.readCommitStatuses
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.apollographql.apollo3.api.json.BufferedSourceJsonReader
 import com.ziro.engineering.github.graphql.sdk.*
 import com.ziro.engineering.github.graphql.sdk.fragment.PullRequestFragment
 import com.ziro.engineering.github.graphql.sdk.type.CreatePullRequestInput
@@ -9,25 +11,35 @@ import com.ziro.engineering.github.graphql.sdk.type.MergePullRequestInput
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestMergeMethod
 import com.ziro.engineering.github.graphql.sdk.type.PullRequestUpdateState
 import com.ziro.engineering.github.graphql.sdk.type.UpdatePullRequestInput
+import java.net.HttpURLConnection.HTTP_NOT_FOUND
 import java.net.URI
 import kotlin.math.min
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.internal.closeQuietly
 
 const val MAX_COMMITS_IN_PAGE = 100
+const val MAX_STATUSES_IN_PAGE = 100
 
 private const val DEFAULT_REPOSITORY_NAME = "smacs"
 private const val DEFAULT_REPOSITORY_OWNER = "stack8"
-private const val GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
+private const val GITHUB_API_HOST = "api.github.com"
+private const val GITHUB_GRAPHQL_URL = "https://$GITHUB_API_HOST/graphql"
+private const val GITHUB_REST_MEDIA_TYPE = "application/vnd.github+json"
 
 class GitHubClient : AutoCloseable {
+    private val authorizationHeader = "Bearer ${System.getenv("GITHUB_API_TOKEN")}"
 
     private val apolloClient: ApolloClient =
         ApolloClient.Builder()
             .serverUrl(GITHUB_GRAPHQL_URL)
-            .addHttpHeader("Authorization", "Bearer ${System.getenv("GITHUB_API_TOKEN")}")
+            .addHttpHeader("Authorization", authorizationHeader)
             .build()
+
+    private val httpClient = OkHttpClient()
 
     fun getRepository(
         repoName: String = DEFAULT_REPOSITORY_NAME,
@@ -96,6 +108,49 @@ class GitHubClient : AutoCloseable {
             ?.onCommit
             ?.status
             ?.contexts ?: emptyList()
+    }
+
+    /**
+     * Unlike [getStatuses], which only has the latest status per context, this returns every status
+     * posted to the commit. A context shared by several jobs keeps all of their statuses instead of
+     * only whichever job posted last.
+     */
+    fun getStatusHistory(
+        repoOwner: String = DEFAULT_REPOSITORY_OWNER,
+        repoName: String = DEFAULT_REPOSITORY_NAME,
+        gitReference: String
+    ): List<CommitStatus> {
+        val url =
+            HttpUrl.Builder()
+                .scheme("https")
+                .host(GITHUB_API_HOST)
+                .addPathSegment("repos")
+                .addPathSegment(repoOwner)
+                .addPathSegment(repoName)
+                .addPathSegment("commits")
+                .addPathSegment(gitReference)
+                .addPathSegment("statuses")
+                .addQueryParameter("per_page", MAX_STATUSES_IN_PAGE.toString())
+                .build()
+
+        val request =
+            Request.Builder()
+                .url(url)
+                .header("Authorization", authorizationHeader)
+                .header("Accept", GITHUB_REST_MEDIA_TYPE)
+                .build()
+
+        httpClient.newCall(request).execute().use { response ->
+            if (response.code == HTTP_NOT_FOUND) {
+                return emptyList()
+            }
+
+            check(response.isSuccessful) {
+                "Failed to get status history for $gitReference: HTTP ${response.code}"
+            }
+
+            return BufferedSourceJsonReader(response.body!!.source()).readCommitStatuses()
+        }
     }
 
     fun getChecks(
@@ -242,5 +297,6 @@ class GitHubClient : AutoCloseable {
 
     override fun close() {
         apolloClient.closeQuietly()
+        httpClient.connectionPool.evictAll()
     }
 }
