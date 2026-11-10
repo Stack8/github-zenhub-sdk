@@ -1,6 +1,9 @@
 package github
 
+import java.io.IOException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,8 +59,17 @@ class GitHubClientTest {
     }
 
     @Test
-    fun whenGetStatusesForDevelopThenStatusesAreReturned() {
-        val result = gitHubClient.getStatuses(gitReference = "develop")
-        assert(result.isNotEmpty())
+    fun badReferenceStatusHistoryFails() {
+        assertFailsWith<IOException> { gitHubClient.getStatusHistory(gitReference = "bad-branch") }
+    }
+
+    @Test
+    fun developStatusesAreAsExpected() {
+        val statuses = gitHubClient.getStatuses(gitReference = "develop")
+        val statusHistory = gitHubClient.getStatusHistory(gitReference = "develop")
+
+        assertTrue(statuses.isNotEmpty(), "develop has at least one status")
+        assertTrue(
+            statusHistory.size > statuses.size, "status history includes superseded statuses")
     }
 }
