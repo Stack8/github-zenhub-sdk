@@ -40,6 +40,7 @@ private fun JsonReader.readCommitStatus(): CommitStatus {
     }
 
     endObject()
+
     return CommitStatus(
         context = requireNotNull(context) { "Commit status has no context" },
         state = requireNotNull(state) { "Commit status has no state" },

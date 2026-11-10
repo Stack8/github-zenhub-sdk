@@ -1,6 +1,8 @@
 package github
 
+import java.io.IOException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
@@ -57,9 +59,8 @@ class GitHubClientTest {
     }
 
     @Test
-    fun badReferenceHasNoStatusHistory() {
-        val result = gitHubClient.getStatusHistory(gitReference = "bad-branch")
-        assertEquals(0, result.size)
+    fun badReferenceStatusHistoryFails() {
+        assertFailsWith<IOException> { gitHubClient.getStatusHistory(gitReference = "bad-branch") }
     }
 
     @Test
