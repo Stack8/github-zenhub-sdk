@@ -111,8 +111,8 @@ class GitHubClient : AutoCloseable {
     }
 
     /**
-     * Unlike [getStatuses], which only has the latest status per context, this returns every status
-     * posted to the commit.
+     * Unlike [getStatuses], which only has the latest status per context,
+     * this returns every status posted to the commit.
      */
     fun getStatusHistory(
         repoOwner: String = DEFAULT_REPOSITORY_OWNER,
