@@ -30,12 +30,12 @@ private const val GITHUB_GRAPHQL_URL = "https://$GITHUB_API_HOST/graphql"
 private const val GITHUB_REST_MEDIA_TYPE = "application/vnd.github+json"
 
 class GitHubClient : AutoCloseable {
-    private val authorizationHeader = "Bearer ${System.getenv("GITHUB_API_TOKEN")}"
+    private val authHeader = "Bearer ${System.getenv("GITHUB_API_TOKEN")}"
 
     private val apolloClient: ApolloClient =
         ApolloClient.Builder()
             .serverUrl(GITHUB_GRAPHQL_URL)
-            .addHttpHeader("Authorization", authorizationHeader)
+            .addHttpHeader("Authorization", authHeader)
             .build()
 
     private val httpClient = OkHttpClient()
@@ -135,7 +135,7 @@ class GitHubClient : AutoCloseable {
         val request =
             Request.Builder()
                 .url(url)
-                .header("Authorization", authorizationHeader)
+                .header("Authorization", authHeader)
                 .header("Accept", GITHUB_REST_MEDIA_TYPE)
                 .build()
 
