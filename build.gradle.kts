@@ -77,7 +77,12 @@ publishing {
 dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime")
     implementation("com.apollographql.apollo3:apollo-api")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0") {
+        because(
+            "it's needed to decode REST responses"
+        )
+    }
 
     testImplementation(kotlin("test"))
 }
