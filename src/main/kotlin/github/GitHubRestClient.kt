@@ -1,8 +1,7 @@
 package github
 
-import adapters.readCommitStatuses
-import com.apollographql.apollo3.api.json.BufferedSourceJsonReader
 import java.io.IOException
+import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -11,6 +10,7 @@ private const val GITHUB_REST_MEDIA_TYPE = "application/vnd.github+json"
 
 internal class GitHubRestClient(private val authorizationHeader: String) : AutoCloseable {
     private val client = OkHttpClient()
+    private val json = Json { ignoreUnknownKeys = true }
 
     fun getStatusHistory(
         repoOwner: String,
@@ -43,7 +43,7 @@ internal class GitHubRestClient(private val authorizationHeader: String) : AutoC
                     "Failed to get status history for $gitReference: HTTP ${response.code}")
             }
 
-            return BufferedSourceJsonReader(response.body!!.source()).readCommitStatuses()
+            return json.decodeFromString(response.body!!.string())
         }
     }
 

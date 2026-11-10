@@ -79,16 +79,8 @@ internal class GitHubGraphQlClient(authorizationHeader: String) : AutoCloseable 
         gitReference: String
     ): List<GetStatusesQuery.Context> = runBlocking {
         val query = GetStatusesQuery(repoOwner, repoName, gitReference)
-        client
-            .query(query)
-            .toFlow()
-            .single()
-            .data
-            ?.repository
-            ?.`object`
-            ?.onCommit
-            ?.status
-            ?.contexts ?: emptyList()
+        client.query(query).toFlow().single().data?.repository?.`object`?.onCommit?.status?.contexts
+            ?: emptyList()
     }
 
     fun getChecks(
@@ -171,14 +163,7 @@ internal class GitHubGraphQlClient(authorizationHeader: String) : AutoCloseable 
 
     fun getPullRequestByUrl(url: URI): PullRequestFragment? = runBlocking {
         val query = GetPullRequestByUrlQuery(url)
-        client
-            .query(query)
-            .toFlow()
-            .single()
-            .data
-            ?.resource
-            ?.onPullRequest
-            ?.pullRequestFragment
+        client.query(query).toFlow().single().data?.resource?.onPullRequest?.pullRequestFragment
     }
 
     fun updatePullRequest(

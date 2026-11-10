@@ -1,14 +1,14 @@
 package github
 
-import com.ziro.engineering.github.graphql.sdk.type.StatusState
-import java.net.URI
-import java.time.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CommitStatus(
-    val context: String,
-    val state: StatusState,
+    val state: String,
     val description: String?,
-    val targetUrl: URI?,
-    val creatorLogin: String?,
-    val createdAt: Instant,
+    @SerialName("target_url") val targetUrl: String?,
+    val creator: SimpleUser?,
 )
+
+@Serializable data class SimpleUser(val login: String)

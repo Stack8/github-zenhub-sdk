@@ -30,7 +30,7 @@ plugins {
     java
     `maven-publish`
     kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "1.9.10"
+    kotlin("plugin.serialization") version "2.1.0"
     id("com.apollographql.apollo3") version "3.8.2"
     id("com.diffplug.spotless") version "7.0.2"
 }
@@ -77,6 +77,7 @@ publishing {
 dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime")
     implementation("com.apollographql.apollo3:apollo-api")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     testImplementation(kotlin("test"))
 }
